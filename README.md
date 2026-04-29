@@ -4,7 +4,7 @@ MSc thesis (University of Agder). A controlled comparison on the [Norwegian Revi
 
 1. Classical baselines (TF-IDF + Logistic Regression / Linear SVM)
 2. Fine-tuned NB-BERT-base
-3. Zero-shot and few-shot prompting with open-source instruction-tuned LLMs (Llama-3.2-1B / 3B and Llama-3.1-8B)
+3. Zero-shot and few-shot prompting with open-source instruction-tuned LLMs (Llama 3 Instruct: Llama-3.2-1B, Llama-3.2-3B, Llama-3.1-8B)
 
 Task: document-level **binary** sentiment classification with label mapping `{1,2,3} → negative`, `{4,5,6} → positive`. Splits: NoReC's published train/dev/test.
 
