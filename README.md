@@ -24,3 +24,16 @@ uv sync
 - `data/` — local data cache (gitignored)
 - `results/` — experiment outputs (gitignored)
 - `papers/` — background literature
+
+## Running on the UiA V100
+
+GPU work runs on the UiA Coder V100. Connection requires eduVPN + the `coder` CLI's SSH config (`coder.master`). Use the `scripts/v100.sh` helper:
+
+```bash
+./scripts/v100.sh bootstrap          # one-time: install uv, sync deps, clone NoReC
+./scripts/v100.sh push               # sync local code to V100
+./scripts/v100.sh run scripts/foo.py # push + run + pull results
+./scripts/v100.sh ssh                # open shell on V100
+```
+
+Local `.venv` and remote `~/master-new/.venv` are independent but share the same `uv.lock`, so package versions match.
