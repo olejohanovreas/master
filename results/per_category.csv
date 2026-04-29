@@ -1,0 +1,37 @@
+model,category,n,accuracy,macro_f1
+logreg+balanced,games,180,0.8833,0.752
+logreg+balanced,literature,547,0.9013,0.7841
+logreg+balanced,misc,24,1.0,1.0
+logreg+balanced,music,1444,0.8864,0.8304
+logreg+balanced,products,345,0.8783,0.6482
+logreg+balanced,restaurants,98,0.9286,0.902
+logreg+balanced,screen,1579,0.8543,0.8254
+logreg+balanced,sports,16,0.375,0.375
+logreg+balanced,stage,107,0.9252,0.7574
+NB-BERT-base,games,180,0.9278,0.8605
+NB-BERT-base,literature,547,0.9104,0.8138
+NB-BERT-base,misc,24,0.8333,0.7
+NB-BERT-base,music,1444,0.919,0.8803
+NB-BERT-base,products,345,0.887,0.686
+NB-BERT-base,restaurants,98,0.8878,0.8361
+NB-BERT-base,screen,1579,0.8854,0.8611
+NB-BERT-base,sports,16,0.375,0.3651
+NB-BERT-base,stage,107,0.9346,0.8152
+Llama-3.1-8B 0-shot,games,180,0.9111,0.8691
+Llama-3.1-8B 0-shot,literature,547,0.8135,0.7385
+Llama-3.1-8B 0-shot,misc,24,0.9167,0.8095
+Llama-3.1-8B 0-shot,music,1444,0.9072,0.8673
+Llama-3.1-8B 0-shot,products,345,0.8754,0.7375
+Llama-3.1-8B 0-shot,restaurants,98,0.9184,0.9
+Llama-3.1-8B 0-shot,screen,1579,0.8562,0.838
+Llama-3.1-8B 0-shot,sports,16,0.5625,0.5608
+Llama-3.1-8B 0-shot,stage,107,0.8972,0.7925
+Llama-3.1-8B 4-shot,games,180,0.9167,0.8737
+Llama-3.1-8B 4-shot,literature,547,0.8958,0.8302
+Llama-3.1-8B 4-shot,misc,24,0.9167,0.8095
+Llama-3.1-8B 4-shot,music,1444,0.9294,0.8992
+Llama-3.1-8B 4-shot,products,345,0.8899,0.766
+Llama-3.1-8B 4-shot,restaurants,98,0.949,0.9353
+Llama-3.1-8B 4-shot,screen,1579,0.8904,0.8717
+Llama-3.1-8B 4-shot,sports,16,0.4375,0.4353
+Llama-3.1-8B 4-shot,stage,107,0.9252,0.8249
