@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "MSc thesis (UiA): Norwegian sentiment classification on NoReC — fine-tuning vs prompting with open-source language models"
 requires-python = ">=3.12"
 dependencies = [
-    "torch>=2.5",
+    "torch>=2.7,<2.8",
     "transformers>=4.45",
     "datasets>=3.0",
     "accelerate>=1.0",
@@ -22,3 +22,16 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["thesis"]
+
+# Force torch to install from PyTorch's CUDA 12.6 wheel index. The default PyPI
+# wheels target CUDA 13.0, and the cu128 wheels (current and older torch alike)
+# universally dropped Volta (compute capability 7.0). cu126 wheels still ship
+# CC 7.0 kernels and run on both the V100 (driver 570 / CC 7.0) and the local
+# RTX 3070 (driver 580 / CC 8.6) via CUDA forward-compatibility.
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
