@@ -1,0 +1,74 @@
+{
+  "few_shot_examples": [
+    {
+      "review_id": "107397",
+      "text": "Jamiroquai:«Dynamite» \n\n(Sony BMG) \n\nFor ti år siden var Jamiroquais oppdaterte hybrid av syttitallets disco og funk en frisk nyskapning, som sendte alt fra Stevie Wonder-fans til house-fantaster ut på dansegulvet i skjønn forening. \nMed vekslende hell har briten gjentatt resepten flere ganger, men det er ingen tvil om at konseptet nå bærer preg av slitasje. \nMed et par unntak («Starchild» og vestkyst-flørten «Talullah») inneholder ikke «Dynamite» gode nok låter til at det blir spennende en gang til. \nKay har gjort lydbildet ytterligere skurrete og «underground» - på «Love Blind» skaper han en lite vellykket dance-utgave av Prodigy - men altfor store deler av platen blir likelydende i sin rytmiske monotoni når den mangler kvalitetene til å skille sporene fra hverandre. \n",
+      "label_name": "negative"
+    },
+    {
+      "review_id": "110765",
+      "text": "Conor Oberst:«Conor Oberst» \n\nCountry-rock (Wichita/Bonnier Amigo) \n\nObersten kaster jakka og løsner på slipset. \n\nDet er uvisst om Conor Oberst har gitt opp sitt Bright Eyes-prosjekt nå som han gir ut plate under sitt eget navn, men i så fall er det ikke snakk om drastiske karrierevalg: \nBright Eyes er nem- lig fremdeles ikke langt unna uttrykksmessig. \n\nForskjellen er den løsslupne atmosfæren som preger dette albumet - en varm og vindskeiv touch av country-rock som kler Obersts karakteristiske stemme svært godt og som trolig er inspirert av at han har tatt turen over til Mexico for å spille inn platen. \n«Conor Oberst» beviser at vi har å gjøre med en klassisk låtskriver, men han er likevel hakket hvassere når han opererer under Bright Eyes-navnet. \n\nForhåpentlig kommer han også tilbake dit etter hvert. \nI mellomtiden er dette finfin ventemusikk. \n\nAnbefalte kjøp: \n«Get-Well-Cards», «Danny Callahan», «Moab» og «Souled Out!!!». \n",
+      "label_name": "positive"
+    },
+    {
+      "review_id": "201691",
+      "text": "Trust Mini Webcam WB-1200p\nEr et bittelite og billig webkamera brukbart, hvis man bare vil spandere et par hundre kroner og litt til? \n\nTrust har flere større og mer avanserte modeller, men vi plukket ut et av de aller minste og rimeligste. \nForventningene var derfor ikke spesielt høye, vi var mest nysgjerrige. \n\nDet kan imidlertid ikke stå av seg selv... \n\nDerimot har det en fiks klemme som passer på de aller fleste bærbare. \nDen spenner over 7 - 15 mm og sitter godt, faktisk best av alle kameraene vi har testet. \n\nBildekvalitet \n\nDette er et kamera i den aller rimeligste klassen og det merkes på bildekvaliteten. \nDen er ikke imponerende, det er mye støy i bildet og fargene er ganske fantasifulle, men i dagslys var det ikke helt ubrukelig. \n\nDet er heller ikke lett å fokusere - bildet blir temmelig uskarpt uansett. \n\nVi vil rett og slett anbefale at man bruker noen flere hundrelapper hvis man først skal anskaffe seg et webkamera \n\nTilbake til testforsiden \n",
+      "label_name": "negative"
+    },
+    {
+      "review_id": "704070",
+      "text": "Alicia i fyr og flamme\nAlicia Keys var bare 20 år da hun fikk en verdenshit med singlen \"Fallin'\". \n\nNå er hun 31 og fremme ved album nummer fem. \nTiden er inne for en fornyelse, og hun henter inn et kobbel hippe navn som Emeli Sandé, Gary Clark Jr. og Jamie xx – folk som samtidig vet å verdsette en god sang. \nSingelkuttet \"Girl on fire\" med Nicki Minaj er en ekstremt lettantennelig låt, med trommesampling fra Billy Squires \"The big beat\" (1980). \nSamtidig er det varme pianostykker som \"Not even the king\" som fortsatt utgjør forskjellen på Alicia og resten av kobbelet. \n\nI \"Fire we make\" og \"Brand new day\" kombinerer hun det beste fra begge leire: \n\" _Don't be mad, it's just a brand new kind of me/And it ain't bad, I've found a brand new kind of free_ \". \n\nBeste spor: \n\"Brand new me\", \"Girl on fire\", \"Fire we make\". \n",
+      "label_name": "positive"
+    }
+  ],
+  "config": {
+    "max_review_tokens": 1500,
+    "max_input_tokens": 4096,
+    "max_new_tokens": 4,
+    "batch_size": 4,
+    "decoding": "greedy",
+    "smoke_test": false,
+    "seed": 43,
+    "prompt": "default"
+  },
+  "runs": [
+    {
+      "model": "meta-llama/Llama-3.1-8B-Instruct",
+      "regime": "few-shot",
+      "elapsed_seconds": 2390.4243557453156,
+      "n_examples": 4340,
+      "n_unparseable": 78,
+      "fallback_label_for_unparseable": "positive",
+      "seed": 43,
+      "prompt": "default",
+      "metrics": {
+        "accuracy": 0.9140552995391705,
+        "macro_f1": 0.8768712385552249,
+        "per_class": {
+          "negative": {
+            "precision": 0.8071428571428572,
+            "recall": 0.8112820512820513,
+            "f1": 0.8092071611253197,
+            "support": 975
+          },
+          "positive": {
+            "precision": 0.9452380952380952,
+            "recall": 0.9438335809806835,
+            "f1": 0.9445353159851301,
+            "support": 3365
+          }
+        },
+        "confusion_matrix": [
+          [
+            791,
+            184
+          ],
+          [
+            189,
+            3176
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "few_shot_examples": [
+    {
+      "review_id": "111650",
+      "text": "Tokio Hotel - «Humanoid»\nTenåringshelter med begrenset musikalsk interesse. \n\nTyske Tokio Hotel - med svartsminkede, androgyne Bill Kaulitz (20) og hans ti minutter eldre tvillingbror Tom som udiskutabel kjerne - har på kort tid blitt et europeisk tenåringsfenomen av dimensjoner. \nMye skyldes selvfølgelig Bills frontfigurative særpreg, men samtidig har uttrykket - som flere mener er spesialdesignet av langt eldre og mer erfarne produsenter - et emosjonelt element som er det rene fluepapiret på rot- og rastløse ungdommer med sans for melodiøs, synthpreget pop med høy glamfaktor. \n\nLuften går dessverre fort ut av ballongen her etter en sterk åpning, for når Tokio Hotel er mest interessante når de fremstår som bleke Depeche Mode-skygger er det neppe den musikalske egenarten man vil huske «Humanoid» for. \n\nANBEFALTE KJØP: \n«Noise», «Darkside Of The Sun» og «World Behind My Wall». \n",
+      "label_name": "negative"
+    },
+    {
+      "review_id": "106617",
+      "text": "The Sleepy Jackson «Personality»\n(Virgin/EMI) \n\nNok et flott «Pet Sounds»-substitutt. \n\nAustralske Luke Steele som skjuler seg bak navnet The Sleepy Jackson. \nEn mann hvis enerådige natur og stormannsgalskap fører til at et utall medlemmer kommer og går i bandet hans, men som også får konsekvenser i form av vakkert orkestrert popmusikk. \n\nArrangementene er detaljrike og storartede; det er strykere og englekor hvor enn du snur deg på «Personality». \nSteeles forbilder er antagelig Brian Wilson (lydmessig) og John Lennon (vokalt og låtmessig), og selv om han ikke fyller noen av sine helters sko, gjør han en mer enn hederlig jobb med å forene deres ideer. \nInne i det voldsomme lydbildet ligger dessuten genuint gripende låter og et bankende hjerte. \n\nVeldig lyst og sommerlig, det hele - sjansen er stor for at dette albumet vil føles lite relevant i november. \nMen som jordbær og miniskjørt for lengst har bevist: \nSesongbetonte ting har en helt egen sjarm ved seg. \n\nANBEFALTE KJØP: \n«I Understand What You Want But I Just Don't Care», «Devil Was In My Yard», «Work Alone» \n",
+      "label_name": "positive"
+    },
+    {
+      "review_id": "111772",
+      "text": "Øyafestivalen:Døsig dansk \n\nDansk headliner på Øyas åpningsdag var ikke nødvendigvis et lykketreff. \n\nKONSERT: \nMew STED: \nEnga, Øyafestivalen \n\nMew viste allerede i åpningen - og på neste ukes plate - at de stadig blir mer glad i forbildene Radioheads dekonstruktive tilnærming til popmusikken. \nDet er progressivt, hakkende og arty, men sjelden inkluderende der de gjemmer seg bak fargede lys under hele konserten. \nSnarere ødelegger de stadige rytmebrekkene en naturlig stigning i showet, og dessverre for Mew - sjelden har det vært så glissent mellom trærne foran hovedscenen som i går kveld. \n\nMye reddes av Jonas Bjerre, som vanlig med halstørkle godt tullet rundt halsen. \nHans englestemme gir en ekstra dimensjon til et endimensjonalt (!) uttrykk og ligger som et svalt teppe over resten av Mews lydtablåer. \n\nMed avsluttende - og fantastiske - «Comforting Sounds» er vi nesten villig til å tilgi en monoton førstetime. \nMen da er jo alt ferdig. \n",
+      "label_name": "negative"
+    },
+    {
+      "review_id": "106365",
+      "text": "Arve Tellefsen, fiolin og Nidarosdomens Guttekor, dir.Bjørn Moe: «Aria» \n\n(Grappa) \n\nTellefsen og guttene på tur «Aria» med Arve Tellefsen og Nidarosdomens Guttekor er ingen juleplate i direkte forstand. \nNoen nyere julesanger er med, som Egil Hovland/Britt G. Hallquists «Et lite barn av Davids hus», Anders Öharwalls «När juldagsmorgon glimmar» og «Julefløyten» av William Kristoffersen. \n\nMen ellers er det lagt opp til en innholdsrik musikalsk reise med alt fra kjente opera-arier, via «Ave Maria» av Schubert og «Greensleeves» til Knut Nystedts «Peace I leave with you», som koret synger glimrende a cappella. \nSamarbeidet mellom Tellefsen og Nidarosdomens Guttekor er vel etablert og sitter som fot i hose, og orkestermedlemmene fra Trondheim Symfoniorkester bidrar også til å gjøre klangbildet helstøpt og godt. \n\nTellefsen spiller selvsagt sine soli upåklagelig. \nLikevel blir det noen ganger for mye av det gode her; når de legger på alt som er av både besetning og volum, som i «You'll Never Walk Alone» av Rodgers/Hammerstein, blir dette i svulstigste laget. \nMen så lenge det holdes nede, er dette en fin plate. \n",
+      "label_name": "positive"
+    }
+  ],
+  "config": {
+    "max_review_tokens": 1500,
+    "max_input_tokens": 4096,
+    "max_new_tokens": 4,
+    "batch_size": 4,
+    "decoding": "greedy",
+    "smoke_test": false,
+    "seed": 42,
+    "prompt": "terse"
+  },
+  "runs": [
+    {
+      "model": "meta-llama/Llama-3.1-8B-Instruct",
+      "regime": "few-shot",
+      "elapsed_seconds": 2607.111248254776,
+      "n_examples": 4340,
+      "n_unparseable": 109,
+      "fallback_label_for_unparseable": "positive",
+      "seed": 42,
+      "prompt": "terse",
+      "metrics": {
+        "accuracy": 0.9140552995391705,
+        "macro_f1": 0.8774916737671125,
+        "per_class": {
+          "negative": {
+            "precision": 0.8028169014084507,
+            "recall": 0.8184615384615385,
+            "f1": 0.8105637379380396,
+            "support": 975
+          },
+          "positive": {
+            "precision": 0.947101016138673,
+            "recall": 0.9417533432392273,
+            "f1": 0.9444196095961853,
+            "support": 3365
+          }
+        },
+        "confusion_matrix": [
+          [
+            798,
+            177
+          ],
+          [
+            196,
+            3169
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "model": "NbAiLab/nb-bert-base",
+  "config": {
+    "epochs": 3,
+    "batch_size": 32,
+    "lr": 2e-05,
+    "max_length": 512,
+    "seed": 44,
+    "smoke_test": false
+  },
+  "train_seconds": 969.2581405639648,
+  "dev": {
+    "dev_loss": 0.3433391749858856,
+    "dev_accuracy": 0.8840846366145354,
+    "dev_macro_f1": 0.8316855135953194,
+    "dev_negative_f1": 0.7377731529656608,
+    "dev_negative_precision": 0.7550585729499467,
+    "dev_negative_recall": 0.7212614445574771,
+    "dev_positive_f1": 0.9255978742249779,
+    "dev_positive_precision": 0.9196245233206218,
+    "dev_positive_recall": 0.9316493313521546,
+    "dev_runtime": 12.7454,
+    "dev_samples_per_second": 341.143,
+    "dev_steps_per_second": 5.335,
+    "epoch": 3.0
+  },
+  "test": {
+    "accuracy": 0.9043778801843319,
+    "macro_f1": 0.8588410482488367,
+    "per_class": {
+      "negative": {
+        "precision": 0.8111111111111111,
+        "recall": 0.7487179487179487,
+        "f1": 0.7786666666666666,
+        "support": 975
+      },
+      "positive": {
+        "precision": 0.9287790697674418,
+        "recall": 0.9494799405646359,
+        "f1": 0.9390154298310066,
+        "support": 3365
+      }
+    },
+    "confusion_matrix": [
+      [
+        730,
+        245
+      ],
+      [
+        170,
+        3195
+      ]
+    ]
+  }
+}

@@ -1,21 +1,35 @@
 """Build a single test-set metrics table from all experiment outputs.
 
-Reads every nbbert_seed*.json and llm__s*_p*.json plus classical.json and
-nbbert_chunked.json (if present), aggregates seeds with mean and std, and
-writes a unified CSV + Markdown summary that can be cited directly in the
-thesis.
+Reads classical.json, every nbbert_seed*.json, nbbert_chunked.json (if
+present), and every llm_preds__*__*__s*_p*.csv prediction file, aggregates
+seeds with mean and std, and writes a unified CSV + Markdown summary that
+can be cited directly in the thesis. Computing LLM metrics from CSVs (not
+from the per-seed summary JSONs) is robust to the run_llm.py summary file
+being overwritten when seeds were run with subsets of --models.
 """
 
 from __future__ import annotations
 
 import json
 import math
+import re
+import sys
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 RESULTS_DIR = REPO_ROOT / "results"
+
+sys.path.insert(0, str(REPO_ROOT))
+from thesis.data import LABEL_NAMES  # noqa: E402
+from thesis.evaluation import compute_metrics  # noqa: E402
+
+LLM_PREDS_RE = re.compile(
+    r"^llm_preds__(?P<model>[^_]+(?:-[^_]+)*)__"
+    r"(?P<regime>[^_]+(?:-[^_]+)*)__s(?P<seed>\d+)_p(?P<prompt>\w+)\.csv$"
+)
 
 
 def df_to_markdown(df: pd.DataFrame) -> str:
@@ -123,32 +137,37 @@ def collect_chunked(rows: list[dict]) -> None:
 
 
 def collect_llm(rows: list[dict]) -> None:
-    summaries: list[dict] = []
-    for p in sorted(RESULTS_DIR.glob("llm__s*_p*.json")):
-        with p.open() as f:
-            summaries.append(json.load(f))
-    if not summaries:
-        return
-
+    """Read every llm_preds__*__*__s*_p*.csv and aggregate by (model, regime, prompt)."""
     grouped: dict[tuple[str, str, str], list[dict]] = {}
-    for s in summaries:
-        prompt = s["config"]["prompt"]
-        for r in s["runs"]:
-            key = (r["model"], r["regime"], prompt)
-            grouped.setdefault(key, []).append(r)
+    for p in sorted(RESULTS_DIR.glob("llm_preds__*__s*_p*.csv")):
+        m = LLM_PREDS_RE.match(p.name)
+        if not m:
+            continue
+        df = pd.read_csv(p)
+        y_true = df["label"].to_numpy()
+        y_pred = df["pred"].to_numpy()
+        metrics = compute_metrics(y_true, y_pred, LABEL_NAMES)
+        n_unparse = int((~df["parsed"]).sum()) if "parsed" in df.columns else 0
+        key = (m["model"], m["regime"], m["prompt"])
+        grouped.setdefault(key, []).append(
+            {
+                "seed": int(m["seed"]),
+                "metrics": metrics,
+                "n_unparseable": n_unparse,
+            }
+        )
 
-    for (model_name, regime, prompt), runs_for_key in grouped.items():
+    for (model_short, regime, prompt), runs_for_key in grouped.items():
         accs = [r["metrics"]["accuracy"] for r in runs_for_key]
         f1s = [r["metrics"]["macro_f1"] for r in runs_for_key]
         neg = [r["metrics"]["per_class"]["negative"]["f1"] for r in runs_for_key]
         pos = [r["metrics"]["per_class"]["positive"]["f1"] for r in runs_for_key]
-        unp = [r.get("n_unparseable", 0) for r in runs_for_key]
-        short = model_name.split("/")[-1]
+        unp = [r["n_unparseable"] for r in runs_for_key]
         config_str = regime if prompt == "default" else f"{regime}, prompt={prompt}"
         rows.append(
             {
                 "family": f"LLM ({regime})",
-                "model": short,
+                "model": model_short,
                 "config": config_str,
                 "n_seeds": len(runs_for_key),
                 "accuracy": fmt_mean_std(accs),

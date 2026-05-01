@@ -1,0 +1,74 @@
+{
+  "few_shot_examples": [
+    {
+      "review_id": "704112",
+      "text": "Reserve-Dimmu\nDette er debutalbumet til britiske Saturnian, som tydeligvis har latt seg påvirke sterkt av nordiske kolleger. \nSpørsmålet som umiddelbart trenger seg på, er: \nHvor mange Dimmu Borgir-er trenger verden egentlig? \nHvor mange fattigmannsversjoner skal selskapene spy ut før noen sier at nok er nok? \nKonklusjonen etter et par runder med Saturnian i spilleren er dessverre at akkurat dette er et reserve-Dimmu vi hadde klart oss godt uten. \nMusikken kan beskrives som symfonisk metal som strekker seg fra det egentlig ganske velspilte og stemningsfulle til det ekkelt svulstige. \nHer snakker vi om total mangel på beherskelse. \n\nFlinke musikere, men det hjelper som kjent lite når låtene ikke holder mål. \nHør heller på \"Spiritual black dimentions\". \n\nBeste spor: \n\"The immaculate deception\". \n",
+      "label_name": "negative"
+    },
+    {
+      "review_id": "301854",
+      "text": "Klar for litt taiwansk ekstrem-metal?\nLåter som Cradle of Filth med eksotisk krydder. \n\n||| \nALBUM: \nEkstremmetal fra Taiwan er ikke daglig kost. \nNoen må like fullt gå i bresjen, og Chthonic har gode forutsetninger for å slå både et og to velrettede slag for saken. \n\nBasisen i musikken deres er velkjent, men garnityren er av den mer eksotiske sorten. \nHer finner man nemlig sødmefylte fioliner som gråter etter alle orientens kunster og regler. \n\nSkal man trekke paralleller til vestlige artister, er Cradle of Filth et habilt sammenligningsgrunnlag. \n\nVokalisten er ikke helt på det samme heliumsnivået som Dani Filth og grunntanken i riffingen har mer til felles med moderne amerikansk metaltradisjon enn de fleste samtidige black metal-band. \n\nDet er uansett en effektiv kombo, og «Mirror of Retribution» låter svært og passe dramatisk, selv om den ikke hadde hatt vondt av et par basisvarer til for å spe ut den repeterende følelsen som etter hvert melder seg. \n",
+      "label_name": "positive"
+    },
+    {
+      "review_id": "702815",
+      "text": "MTVerden\nI den unødvendige og uoppnåelige folkeopplysningens navn kan jeg informere om at MTV-dramaet «Save the last dance 2» er på DVD, og at egentlig handler den bare om at Izabella Miko fra «Coyote Ugly» tar en «Fame». \n\nIsabella spiller jenta som vil bli ballett-danser samtidig som hun elsker hip-hop, og siden lærerinna Bisset er en slags Hitler i eks-trikot, hopper den hippe til den frie dansen. \nFilmen er enkel, og den funker. \nUnge jenter ser film i stedet for å ha sex, og når de begynner med sex, slutter de med film, og når de slutter med sex igjen, begynner de med film. \n\nDen skildrer også olebrummernes generasjonskløft. \nMor sier: \nBallett skal være vanskelig. \nDama tenker: \nJeg vil være svanen, men ikke dau for det. \n",
+      "label_name": "negative"
+    },
+    {
+      "review_id": "100653",
+      "text": "Bruvoll/Halvorsen:«Trillar for to» \n\nGrappa musikkforlag. \nFOLKEMUSIKK \n\nMed stor og uhemmet musikalitet videreformidler sanger Jon Anders Halvorsen og gitarist Tore Bruvoll den norske balladetradisjonen. \nDet er en svært samspilt duo, med et modent og velutviklet uttrykk. \nHalvorsens sang er vakker og fløtemyk, med delikate forsiringer som kiler i ørene. \nBruvoll akkompagnerer fantasifullt på ulike strengeinstrumenter. \n\nI tillegg bidrar 40 gjestemusikere, deriblant Oslo fagottkor og den drevne bassisten Sondre Meisfjord. \nDet ligger også mange fine klangdetaljer i den gjennomtenkte studioproduksjonen. \nMed vokal norsk folkemusikk som base har duoen laget en kraftfull og velsmakende miks der også blues, bluegrass og country er blant ingrediensene. \n\nCARL PETTER OPSAHL \n",
+      "label_name": "positive"
+    }
+  ],
+  "config": {
+    "max_review_tokens": 1500,
+    "max_input_tokens": 4096,
+    "max_new_tokens": 4,
+    "batch_size": 4,
+    "decoding": "greedy",
+    "smoke_test": false,
+    "seed": 45,
+    "prompt": "default"
+  },
+  "runs": [
+    {
+      "model": "meta-llama/Llama-3.1-8B-Instruct",
+      "regime": "few-shot",
+      "elapsed_seconds": 2314.2351286411285,
+      "n_examples": 4340,
+      "n_unparseable": 24,
+      "fallback_label_for_unparseable": "positive",
+      "seed": 45,
+      "prompt": "default",
+      "metrics": {
+        "accuracy": 0.9145161290322581,
+        "macro_f1": 0.8796910345858201,
+        "per_class": {
+          "negative": {
+            "precision": 0.7932038834951456,
+            "recall": 0.837948717948718,
+            "f1": 0.8149625935162095,
+            "support": 975
+          },
+          "positive": {
+            "precision": 0.9522658610271904,
+            "recall": 0.9367013372956909,
+            "f1": 0.9444194756554307,
+            "support": 3365
+          }
+        },
+        "confusion_matrix": [
+          [
+            817,
+            158
+          ],
+          [
+            213,
+            3152
+          ]
+        ]
+      }
+    }
+  ]
+}

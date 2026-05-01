@@ -1,0 +1,74 @@
+{
+  "few_shot_examples": [
+    {
+      "review_id": "601762",
+      "text": "Entreprenørskap og merkevarebygging\nSom de lure entreprenørene de er, vet Paul Stanley og Gene Simmons utmerket godt at de ikke kan leve kun av å selge Kiss-flipperspill, Kiss-kondomer og Kiss-kister. \nSkal merkevaren leve, må de i blant lage ny Kiss-musikk også. \nGledelig nok tar deres 617. album opp tråden der \"Sonic Boom\" (2009) slapp den. \nDet betyr en \"tilbake til røttene\"-tilnærming til både låtskriving og produksjon. \nDet skal være hardt og konsist, og det er ikke plass til verken ballader, strykere eller synther. \n\"Monster\" låter derfor tøffere enn det meste bandet har gitt ut de siste 30 årene. \nDette kunne godt ha vært oppfølgeren til \"Creatures of the Night\" (1982). \n\nNoe viktig bidrag til Kiss-katalogen – for ikke å snakke om rockhistorien – er albumet likevel ikke. \nDet mangler de minneverdige enkeltlåtene og blir i lengden for oppskriftsmessig. \nMen det vil utvilsomt bidra til å holde Kiss-sirkuset på veien i enda noen år. \n",
+      "label_name": "negative"
+    },
+    {
+      "review_id": "103664",
+      "text": "Indigo Girls «All that we let in»\n(Epic) \n\nNy voksenpopplate fra den amerikanske jenteduoen Indigo Girls. \n\nAmy Ray og Emily Salien har skrevet alle de elleve nye sangene på oppfølgeren til «Become you». \nDuoen har gode stemmer og har beholdt sin egenart med de tette, gode vokalharmoniene. \nMusikalsk er Indigo Girls inspirert både av pop, folk og rock, og serverer voksenpop som har viseelementer som det mest fremtredende. \n\nIndigo Girls har holdt på i over 15 år, og viser med sanger som «Perfect world», «Tether» og «All that we let in» at de fortsatt leverer melodiøs musikk som appellerer til godt voksne som er opptatt av den gode melodien. \n\nKURT BAKKEMOEN \n",
+      "label_name": "positive"
+    },
+    {
+      "review_id": "107738",
+      "text": "Martin Stenmarck:«Think Of Me» \n\n(CMC) \n\nSom en billedskjønn, og musikalsk, krysning av Enrique Iglesias og Bryan Adams skal annonsekroner på TV gjøre stjerne av svenske Martin Stenmarck også i Norge. \nPengene trengs, for det er vanskelig å se hvordan Stenmarck ellers skulle ha fått et navn her i landet. \nStemmen hans står ikke helt i stil til utseendet, og låtene er så til de grader markedstilpasset et voksent publikum med sans for romantisk, melodiøs pop (men som er for gamle til boyband) at det nærmest fremstår som en fornærmelse. \n\n«I Keep Falling» har han til overmål rappet fra Ronan Keating, og da har vi ikke engang nevnt tekstene, som ikke inneholder en eneste original linje. \nFort spilt, fort glemt. \n",
+      "label_name": "negative"
+    },
+    {
+      "review_id": "103858",
+      "text": "Randi Stene og Rolf Lislevand m/Norsk Barokkork.:Lachrimae \n\n(Linn Records) \n\nKjærlighetssorg på såre strenger. \n\nDronningen av sommerens klassiske musikkfestivaler, Randi Stene, har etterlatt seg et vakkert visittkort til høstens mer melankolske stunder. \nPå platen «Lachrimae» gir hun seg 1500-tallets engelske konge av kjærlighetssorg, John Dowland, i vold, med en stemme som smelter sammen sårbarhet og fylde på en uttrykksfull måte. \nDe triste tekstene kommer til sin rett også takket være det spinkle, lekre akkompagnementet på lutt. \n\nKlimpringen er signert Rolf Lislevand, som også leder Norsk Barokkorkester gjennom fine instrumentale for- og mellomspill. \nHer sukkes og sørges det etter alle kunstens regler, og resultatet er like hjertevarmende som hjerteskjærende. \n",
+      "label_name": "positive"
+    }
+  ],
+  "config": {
+    "max_review_tokens": 1500,
+    "max_input_tokens": 4096,
+    "max_new_tokens": 4,
+    "batch_size": 4,
+    "decoding": "greedy",
+    "smoke_test": false,
+    "seed": 44,
+    "prompt": "default"
+  },
+  "runs": [
+    {
+      "model": "meta-llama/Llama-3.1-8B-Instruct",
+      "regime": "few-shot",
+      "elapsed_seconds": 2256.688507795334,
+      "n_examples": 4340,
+      "n_unparseable": 26,
+      "fallback_label_for_unparseable": "positive",
+      "seed": 44,
+      "prompt": "default",
+      "metrics": {
+        "accuracy": 0.913594470046083,
+        "macro_f1": 0.8801347881545332,
+        "per_class": {
+          "negative": {
+            "precision": 0.7798507462686567,
+            "recall": 0.8574358974358974,
+            "f1": 0.8168050806057645,
+            "support": 975
+          },
+          "positive": {
+            "precision": 0.9574663402692778,
+            "recall": 0.9298662704309064,
+            "f1": 0.9434644957033017,
+            "support": 3365
+          }
+        },
+        "confusion_matrix": [
+          [
+            836,
+            139
+          ],
+          [
+            236,
+            3129
+          ]
+        ]
+      }
+    }
+  ]
+}

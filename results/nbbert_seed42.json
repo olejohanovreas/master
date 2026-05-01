@@ -8,47 +8,47 @@
     "seed": 42,
     "smoke_test": false
   },
-  "train_seconds": 968.4402923583984,
+  "train_seconds": 963.1138410568237,
   "dev": {
-    "dev_loss": 0.29705163836479187,
-    "dev_accuracy": 0.8838546458141674,
-    "dev_macro_f1": 0.8331440530202717,
-    "dev_negative_f1": 0.7411583803177858,
-    "dev_negative_precision": 0.746900826446281,
-    "dev_negative_recall": 0.7355035605289929,
-    "dev_positive_f1": 0.9251297257227576,
-    "dev_positive_precision": 0.9230769230769231,
-    "dev_positive_recall": 0.9271916790490342,
-    "dev_runtime": 13.0087,
-    "dev_samples_per_second": 334.238,
-    "dev_steps_per_second": 5.227,
+    "dev_loss": 0.31830742955207825,
+    "dev_accuracy": 0.8861545538178472,
+    "dev_macro_f1": 0.8346294884083667,
+    "dev_negative_f1": 0.7423217074440396,
+    "dev_negative_precision": 0.7601279317697228,
+    "dev_negative_recall": 0.7253306205493387,
+    "dev_positive_f1": 0.9269372693726937,
+    "dev_positive_precision": 0.9208211143695014,
+    "dev_positive_recall": 0.9331352154531947,
+    "dev_runtime": 12.7079,
+    "dev_samples_per_second": 342.148,
+    "dev_steps_per_second": 5.351,
     "epoch": 3.0
   },
   "test": {
-    "accuracy": 0.9006912442396313,
-    "macro_f1": 0.8552867632035337,
+    "accuracy": 0.9009216589861752,
+    "macro_f1": 0.8539081564371063,
     "per_class": {
       "negative": {
-        "precision": 0.791220556745182,
-        "recall": 0.757948717948718,
-        "f1": 0.7742273441592457,
+        "precision": 0.8017718715393134,
+        "recall": 0.7425641025641025,
+        "f1": 0.7710330138445154,
         "support": 975
       },
       "positive": {
-        "precision": 0.9307105108631826,
-        "recall": 0.9420505200594353,
-        "f1": 0.9363461822478216,
+        "precision": 0.9269711958102996,
+        "recall": 0.9468053491827637,
+        "f1": 0.9367832990296971,
         "support": 3365
       }
     },
     "confusion_matrix": [
       [
-        739,
-        236
+        724,
+        251
       ],
       [
-        195,
-        3170
+        179,
+        3186
       ]
     ]
   }

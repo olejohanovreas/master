@@ -34,19 +34,21 @@ from thesis.evaluation import compute_metrics  # noqa: E402
 RESULTS_DIR = REPO_ROOT / "results"
 FIGURES_DIR = RESULTS_DIR / "figures"
 
-# (family, label, preds-csv-filename)
+# (family, label, preds-csv-filename) — uses seed=42 as the representative for
+# multi-seed configs.
 HEADLINE = [
     ("classical", "logreg+balanced", "classical_preds__logreg__balanced=True.csv"),
-    ("transformer", "NB-BERT-base", "nbbert_preds.csv"),
+    ("transformer", "NB-BERT-base", "nbbert_preds_seed42.csv"),
+    ("transformer", "NB-BERT chunk-pool", "nbbert_preds_chunked.csv"),
     (
         "LLM 0-shot",
         "Llama-3.1-8B 0-shot",
-        "llm_preds__Llama-3.1-8B-Instruct__zero-shot.csv",
+        "llm_preds__Llama-3.1-8B-Instruct__zero-shot__s42_pdefault.csv",
     ),
     (
         "LLM 4-shot",
         "Llama-3.1-8B 4-shot",
-        "llm_preds__Llama-3.1-8B-Instruct__few-shot.csv",
+        "llm_preds__Llama-3.1-8B-Instruct__few-shot__s42_pdefault.csv",
     ),
 ]
 
@@ -210,8 +212,8 @@ def main() -> None:
     print(f"Wrote {out}")
 
     # ---------- Qualitative samples ----------
-    bert = load_preds("nbbert_preds.csv")
-    llm = load_preds("llm_preds__Llama-3.1-8B-Instruct__few-shot.csv")
+    bert = load_preds("nbbert_preds_seed42.csv")
+    llm = load_preds("llm_preds__Llama-3.1-8B-Instruct__few-shot__s42_pdefault.csv")
     bert.rename(columns={"pred": "bert_pred"}, inplace=True)
     llm.rename(columns={"pred": "llm_pred", "raw": "llm_raw"}, inplace=True)
     merged = (
