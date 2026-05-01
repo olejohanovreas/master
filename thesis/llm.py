@@ -9,11 +9,22 @@ import pandas as pd
 
 from .data import LABEL_NAMES
 
-SYSTEM_PROMPT = (
-    "You are a sentiment classifier for Norwegian reviews. "
-    "Read the review and respond with exactly one word: "
-    "either 'positive' or 'negative'. Do not explain."
-)
+SYSTEM_PROMPTS: dict[str, str] = {
+    "default": (
+        "You are a sentiment classifier for Norwegian reviews. "
+        "Read the review and respond with exactly one word: "
+        "either 'positive' or 'negative'. Do not explain."
+    ),
+    "terse": (
+        "Classify the sentiment of the following Norwegian review. "
+        "Reply with one word: positive or negative."
+    ),
+    "norwegian": (
+        "Du er en sentimentklassifiserer for norske anmeldelser. "
+        "Les anmeldelsen og svar med nøyaktig ett ord: "
+        "enten 'positive' eller 'negative'. Ikke forklar."
+    ),
+}
 
 
 def truncate_text_to_tokens(text: str, tokenizer, max_tokens: int) -> str:
@@ -36,10 +47,17 @@ class FewShotExample:
 
 
 def build_messages(
-    review: str, few_shot: list[FewShotExample] | None = None
+    review: str,
+    few_shot: list[FewShotExample] | None = None,
+    system_prompt: str | None = None,
 ) -> list[dict[str, str]]:
-    """Build a chat-style message list for an instruction-tuned model."""
-    messages: list[dict[str, str]] = [{"role": "system", "content": SYSTEM_PROMPT}]
+    """Build a chat-style message list for an instruction-tuned model.
+
+    `system_prompt` defaults to SYSTEM_PROMPTS["default"]; pass an alternative
+    string to swap in a different prompt without changing call sites.
+    """
+    sp = system_prompt if system_prompt is not None else SYSTEM_PROMPTS["default"]
+    messages: list[dict[str, str]] = [{"role": "system", "content": sp}]
     if few_shot:
         for ex in few_shot:
             messages.append({"role": "user", "content": f"Review:\n{ex.text}"})
@@ -81,6 +99,8 @@ def select_few_shot_examples(
 
     Restricts to mid-length reviews so the prompt stays compact and easy to read.
     Returns examples interleaved (neg, pos, neg, pos, ...) to avoid ordering bias.
+    Different `seed` values yield different demonstration sets, which is the
+    primary source of variance for multi-seed few-shot evaluation.
     """
     word_counts = train_df["text"].str.split().str.len()
     pool = train_df[(word_counts >= min_words) & (word_counts <= max_words)]

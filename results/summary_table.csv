@@ -1,13 +1,13 @@
-family,model,config,accuracy,macro_f1,neg_f1,pos_f1,n_unparseable
-LLM (few-shot),Llama-3.1-8B-Instruct,few-shot,0.9058,0.8717,0.8057,0.9378,8
-LLM (few-shot),Llama-3.2-3B-Instruct,few-shot,0.8806,0.8399,0.7591,0.9207,0
-LLM (few-shot),Llama-3.2-1B-Instruct,few-shot,0.729,0.6914,0.5836,0.7992,0
-LLM (zero-shot),Llama-3.2-3B-Instruct,zero-shot,0.8899,0.8436,0.7586,0.9287,0
-LLM (zero-shot),Llama-3.1-8B-Instruct,zero-shot,0.8733,0.8343,0.754,0.9146,92
-LLM (zero-shot),Llama-3.2-1B-Instruct,zero-shot,0.2859,0.2667,0.3855,0.1479,9
-baseline,majority,always positive,0.7753,0.4367,0.0,0.8735,
-classical,Logistic Regression,"class_weight=balanced, C=10.0",0.8765,0.819,0.717,0.921,
-classical,Linear SVM,"class_weight=balanced, C=1.0",0.8747,0.8142,0.7082,0.9202,
-classical,Linear SVM,"class_weight=none, C=10.0",0.8712,0.7995,0.6797,0.9194,
-classical,Logistic Regression,"class_weight=none, C=10.0",0.8717,0.7907,0.6606,0.9209,
-transformer,NB-BERT-base,"3 ep, lr=2e-05, batch=32, max_len=512",0.9007,0.8553,0.7742,0.9363,
+family,model,config,n_seeds,accuracy,macro_f1,neg_f1,pos_f1,n_unparseable
+baseline,majority,always positive,1,0.7753,0.4367,0.0000,0.8735,
+classical,Logistic Regression,"class_weight=none, C=10.0",1,0.8717,0.7907,0.6606,0.9209,
+classical,Logistic Regression,"class_weight=balanced, C=10.0",1,0.8765,0.8190,0.7170,0.9210,
+classical,Linear SVM,"class_weight=none, C=10.0",1,0.8712,0.7995,0.6797,0.9194,
+classical,Linear SVM,"class_weight=balanced, C=1.0",1,0.8747,0.8142,0.7082,0.9202,
+transformer,NB-BERT-base,"3 ep, lr=2e-05, batch=32, max_len=512",1,0.9007,0.8553,0.7742,0.9363,
+LLM (zero-shot),Llama-3.1-8B-Instruct,zero-shot,1,0.8733,0.8343,0.7540,0.9146,92
+LLM (few-shot),Llama-3.1-8B-Instruct,few-shot,1,0.9058,0.8717,0.8057,0.9378,8
+LLM (zero-shot),Llama-3.2-1B-Instruct,zero-shot,1,0.2859,0.2667,0.3855,0.1479,9
+LLM (few-shot),Llama-3.2-1B-Instruct,few-shot,1,0.7290,0.6914,0.5836,0.7992,0
+LLM (zero-shot),Llama-3.2-3B-Instruct,zero-shot,1,0.8899,0.8436,0.7586,0.9287,0
+LLM (few-shot),Llama-3.2-3B-Instruct,few-shot,1,0.8806,0.8399,0.7591,0.9207,0

@@ -1,11 +1,14 @@
 """Fine-tune NB-BERT-base on NoReC for binary sentiment.
 
 Selects the best checkpoint by dev macro-F1, evaluates it on test, and writes
-predictions plus metrics to results/. Designed to run on the V100.
+predictions plus metrics to results/. Saves the best fine-tuned model under
+checkpoints/nbbert-base-seed{seed}/final/ so the chunk-and-pool eval can
+reload it. Designed to run on the V100.
 
 Usage:
-    uv run python scripts/run_finetune_nbbert.py [--smoke_test] [--epochs 3]
-                                                 [--batch_size 32] [--lr 2e-5]
+    uv run python scripts/run_finetune_nbbert.py [--seed 42] [--smoke_test]
+                                                 [--epochs 3] [--batch_size 32]
+                                                 [--lr 2e-5]
 """
 
 from __future__ import annotations
@@ -34,14 +37,14 @@ from thesis.evaluation import compute_metrics  # noqa: E402
 from thesis.transformer import hf_compute_metrics, tokenize_dataframe  # noqa: E402
 
 RESULTS_DIR = REPO_ROOT / "results"
-CHECKPOINTS_DIR = REPO_ROOT / "checkpoints" / "nbbert-base"
+CHECKPOINTS_ROOT = REPO_ROOT / "checkpoints"
 MODEL_NAME = "NbAiLab/nb-bert-base"
 MAX_LENGTH = 512
-SEED = 42
 
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
+    p.add_argument("--seed", type=int, default=42)
     p.add_argument("--epochs", type=int, default=3)
     p.add_argument("--batch_size", type=int, default=32)
     p.add_argument("--lr", type=float, default=2e-5)
@@ -55,9 +58,13 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    set_seed(SEED)
+    seed = args.seed
+    set_seed(seed)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    CHECKPOINTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    checkpoint_dir = CHECKPOINTS_ROOT / f"nbbert-base-seed{seed}"
+    final_dir = checkpoint_dir / "final"
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     print("Loading NoReC...")
     df = load_norec()
@@ -67,14 +74,14 @@ def main() -> None:
 
     if args.smoke_test:
         print("[smoke_test] subsampling train=200 dev=100 test=100, epochs=1")
-        train_df = train_df.sample(200, random_state=SEED).reset_index(drop=True)
-        dev_df = dev_df.sample(100, random_state=SEED).reset_index(drop=True)
-        test_df = test_df.sample(100, random_state=SEED).reset_index(drop=True)
+        train_df = train_df.sample(200, random_state=seed).reset_index(drop=True)
+        dev_df = dev_df.sample(100, random_state=seed).reset_index(drop=True)
+        test_df = test_df.sample(100, random_state=seed).reset_index(drop=True)
         args.epochs = 1
 
     print(
         f"sizes: train={len(train_df):,} "
-        f"dev={len(dev_df):,} test={len(test_df):,}"
+        f"dev={len(dev_df):,} test={len(test_df):,}  seed={seed}"
     )
 
     print(f"Loading tokenizer + model: {MODEL_NAME}")
@@ -89,7 +96,7 @@ def main() -> None:
     test_ds = tokenize_dataframe(test_df, tokenizer, MAX_LENGTH)
 
     training_args = TrainingArguments(
-        output_dir=str(CHECKPOINTS_DIR),
+        output_dir=str(checkpoint_dir),
         num_train_epochs=args.epochs,
         per_device_train_batch_size=args.batch_size,
         per_device_eval_batch_size=args.batch_size * 2,
@@ -105,7 +112,7 @@ def main() -> None:
         greater_is_better=True,
         logging_steps=50,
         report_to="none",
-        seed=SEED,
+        seed=seed,
         disable_tqdm=False,
     )
 
@@ -125,6 +132,10 @@ def main() -> None:
     train_seconds = time.time() - t0
     print(f"  train wall time: {train_seconds:.1f}s")
 
+    print(f"Saving best model to {final_dir}")
+    trainer.save_model(str(final_dir))
+    tokenizer.save_pretrained(str(final_dir))
+
     print("Eval on dev (best checkpoint, reloaded):")
     dev_metrics_flat = trainer.evaluate(dev_ds, metric_key_prefix="dev")
     for k, v in dev_metrics_flat.items():
@@ -142,7 +153,7 @@ def main() -> None:
     test_y = np.array(test_df["label"])
     test_metrics = compute_metrics(test_y, test_yhat, LABEL_NAMES)
 
-    preds_path = RESULTS_DIR / "nbbert_preds.csv"
+    preds_path = RESULTS_DIR / f"nbbert_preds_seed{seed}.csv"
     pd.DataFrame(
         {"id": test_df["id"].to_numpy(), "label": test_y, "pred": test_yhat}
     ).to_csv(preds_path, index=False)
@@ -154,21 +165,21 @@ def main() -> None:
             "batch_size": args.batch_size,
             "lr": args.lr,
             "max_length": MAX_LENGTH,
-            "seed": SEED,
+            "seed": seed,
             "smoke_test": args.smoke_test,
         },
         "train_seconds": train_seconds,
         "dev": {k: float(v) for k, v in dev_metrics_flat.items() if isinstance(v, (int, float))},
         "test": test_metrics,
     }
-    out_path = RESULTS_DIR / "nbbert.json"
+    out_path = RESULTS_DIR / f"nbbert_seed{seed}.json"
     with out_path.open("w") as f:
         json.dump(out, f, indent=2)
     print(f"\nWrote {out_path}")
     print(f"Wrote {preds_path}")
     print("\n=== Summary ===")
     print(
-        f"test acc: {test_metrics['accuracy']:.4f}  "
+        f"seed={seed}  test acc: {test_metrics['accuracy']:.4f}  "
         f"test macro-F1: {test_metrics['macro_f1']:.4f}"
     )
 

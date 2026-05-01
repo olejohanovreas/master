@@ -1,12 +1,15 @@
 """Build a single test-set metrics table from all experiment outputs.
 
-Reads results/{classical.json, nbbert.json, llm.json} and writes a unified
-CSV + Markdown summary that can be cited directly in the thesis.
+Reads every nbbert_seed*.json and llm__s*_p*.json plus classical.json and
+nbbert_chunked.json (if present), aggregates seeds with mean and std, and
+writes a unified CSV + Markdown summary that can be cited directly in the
+thesis.
 """
 
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -24,12 +27,24 @@ def df_to_markdown(df: pd.DataFrame) -> str:
     return "\n".join(lines)
 
 
-def main() -> None:
-    rows: list[dict] = []
+def fmt_mean_std(values: list[float], digits: int = 4) -> str:
+    if not values:
+        return ""
+    mean = sum(values) / len(values)
+    if len(values) <= 1:
+        return f"{mean:.{digits}f}"
+    var = sum((v - mean) ** 2 for v in values) / (len(values) - 1)
+    std = math.sqrt(var)
+    return f"{mean:.{digits}f} ± {std:.{digits}f}"
 
-    with (RESULTS_DIR / "classical.json").open() as f:
-        classical = json.load(f)
-    for r in classical:
+
+def collect_classical(rows: list[dict]) -> None:
+    path = RESULTS_DIR / "classical.json"
+    if not path.exists():
+        return
+    with path.open() as f:
+        runs = json.load(f)
+    for r in runs:
         if r["model"] == "majority":
             family, model, config = "baseline", "majority", "always positive"
         else:
@@ -42,66 +57,127 @@ def main() -> None:
         m = r["test"]
         rows.append(
             {
-                "family": family,
-                "model": model,
-                "config": config,
-                "accuracy": round(m["accuracy"], 4),
-                "macro_f1": round(m["macro_f1"], 4),
-                "neg_f1": round(m["per_class"]["negative"]["f1"], 4),
-                "pos_f1": round(m["per_class"]["positive"]["f1"], 4),
+                "family": family, "model": model, "config": config,
+                "n_seeds": 1,
+                "accuracy": fmt_mean_std([m["accuracy"]]),
+                "macro_f1": fmt_mean_std([m["macro_f1"]]),
+                "neg_f1": fmt_mean_std([m["per_class"]["negative"]["f1"]]),
+                "pos_f1": fmt_mean_std([m["per_class"]["positive"]["f1"]]),
                 "n_unparseable": "",
             }
         )
 
-    with (RESULTS_DIR / "nbbert.json").open() as f:
-        nb = json.load(f)
-    m = nb["test"]
+
+def collect_nbbert(rows: list[dict]) -> None:
+    seed_files = sorted(RESULTS_DIR.glob("nbbert_seed*.json"))
+    if not seed_files:
+        return
+    summaries: list[dict] = []
+    for p in seed_files:
+        with p.open() as f:
+            summaries.append(json.load(f))
+    cfg = summaries[0]["config"]
+    accs = [s["test"]["accuracy"] for s in summaries]
+    f1s = [s["test"]["macro_f1"] for s in summaries]
+    neg = [s["test"]["per_class"]["negative"]["f1"] for s in summaries]
+    pos = [s["test"]["per_class"]["positive"]["f1"] for s in summaries]
     rows.append(
         {
             "family": "transformer",
             "model": "NB-BERT-base",
             "config": (
-                f"3 ep, lr={nb['config']['lr']}, batch={nb['config']['batch_size']}, "
-                f"max_len={nb['config']['max_length']}"
+                f"{cfg['epochs']} ep, lr={cfg['lr']}, batch={cfg['batch_size']}, "
+                f"max_len={cfg['max_length']}"
             ),
-            "accuracy": round(m["accuracy"], 4),
-            "macro_f1": round(m["macro_f1"], 4),
-            "neg_f1": round(m["per_class"]["negative"]["f1"], 4),
-            "pos_f1": round(m["per_class"]["positive"]["f1"], 4),
+            "n_seeds": len(summaries),
+            "accuracy": fmt_mean_std(accs),
+            "macro_f1": fmt_mean_std(f1s),
+            "neg_f1": fmt_mean_std(neg),
+            "pos_f1": fmt_mean_std(pos),
             "n_unparseable": "",
         }
     )
 
-    with (RESULTS_DIR / "llm.json").open() as f:
-        llm = json.load(f)
-    for r in llm["runs"]:
-        m = r["metrics"]
-        short = r["model"].split("/")[-1]
+
+def collect_chunked(rows: list[dict]) -> None:
+    path = RESULTS_DIR / "nbbert_chunked.json"
+    if not path.exists():
+        return
+    with path.open() as f:
+        s = json.load(f)
+    m = s["test"]
+    cfg = s["config"]
+    rows.append(
+        {
+            "family": "transformer",
+            "model": "NB-BERT-base + chunk-and-pool",
+            "config": f"max_len={cfg['max_length']}, stride={cfg['stride']}",
+            "n_seeds": 1,
+            "accuracy": fmt_mean_std([m["accuracy"]]),
+            "macro_f1": fmt_mean_std([m["macro_f1"]]),
+            "neg_f1": fmt_mean_std([m["per_class"]["negative"]["f1"]]),
+            "pos_f1": fmt_mean_std([m["per_class"]["positive"]["f1"]]),
+            "n_unparseable": "",
+        }
+    )
+
+
+def collect_llm(rows: list[dict]) -> None:
+    summaries: list[dict] = []
+    for p in sorted(RESULTS_DIR.glob("llm__s*_p*.json")):
+        with p.open() as f:
+            summaries.append(json.load(f))
+    if not summaries:
+        return
+
+    grouped: dict[tuple[str, str, str], list[dict]] = {}
+    for s in summaries:
+        prompt = s["config"]["prompt"]
+        for r in s["runs"]:
+            key = (r["model"], r["regime"], prompt)
+            grouped.setdefault(key, []).append(r)
+
+    for (model_name, regime, prompt), runs_for_key in grouped.items():
+        accs = [r["metrics"]["accuracy"] for r in runs_for_key]
+        f1s = [r["metrics"]["macro_f1"] for r in runs_for_key]
+        neg = [r["metrics"]["per_class"]["negative"]["f1"] for r in runs_for_key]
+        pos = [r["metrics"]["per_class"]["positive"]["f1"] for r in runs_for_key]
+        unp = [r.get("n_unparseable", 0) for r in runs_for_key]
+        short = model_name.split("/")[-1]
+        config_str = regime if prompt == "default" else f"{regime}, prompt={prompt}"
         rows.append(
             {
-                "family": f"LLM ({r['regime']})",
+                "family": f"LLM ({regime})",
                 "model": short,
-                "config": r["regime"],
-                "accuracy": round(m["accuracy"], 4),
-                "macro_f1": round(m["macro_f1"], 4),
-                "neg_f1": round(m["per_class"]["negative"]["f1"], 4),
-                "pos_f1": round(m["per_class"]["positive"]["f1"], 4),
-                "n_unparseable": r.get("n_unparseable", 0),
+                "config": config_str,
+                "n_seeds": len(runs_for_key),
+                "accuracy": fmt_mean_std(accs),
+                "macro_f1": fmt_mean_std(f1s),
+                "neg_f1": fmt_mean_std(neg),
+                "pos_f1": fmt_mean_std(pos),
+                "n_unparseable": (
+                    f"{sum(unp) / len(unp):.0f}" if len(unp) > 1 else f"{unp[0]}"
+                ),
             }
         )
 
-    df = pd.DataFrame(rows)
-    df = df.sort_values(["family", "macro_f1"], ascending=[True, False]).reset_index(
-        drop=True
-    )
 
+def main() -> None:
+    rows: list[dict] = []
+    collect_classical(rows)
+    collect_nbbert(rows)
+    collect_chunked(rows)
+    collect_llm(rows)
+
+    df = pd.DataFrame(rows)
     out_csv = RESULTS_DIR / "summary_table.csv"
     df.to_csv(out_csv, index=False)
     print(f"Wrote {out_csv}")
 
     out_md = RESULTS_DIR / "summary_table.md"
     out_md.write_text(
-        "# NoReC binary sentiment — test-set results\n\n" + df_to_markdown(df) + "\n"
+        "# NoReC binary sentiment - test-set results (mean ± std across seeds)\n\n"
+        + df_to_markdown(df) + "\n"
     )
     print(f"Wrote {out_md}")
     print()

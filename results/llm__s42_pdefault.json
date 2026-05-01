@@ -28,7 +28,8 @@
     "batch_size": 4,
     "decoding": "greedy",
     "smoke_test": false,
-    "seed": 42
+    "seed": 42,
+    "prompt": "default"
   },
   "runs": [
     {

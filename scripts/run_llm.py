@@ -1,14 +1,17 @@
 """Zero-shot and few-shot prompting eval on NoReC test for instruction-tuned LLMs.
 
 Runs each (model, regime) combo against the held-out test set, using greedy
-decoding and a fixed prompt. Saves per-config predictions plus aggregate metrics.
+decoding and a configurable system prompt. Saves per-config predictions plus
+aggregate metrics, all tagged with `seed` (which controls few-shot demo
+sampling) and `prompt` (which selects from thesis.llm.SYSTEM_PROMPTS).
 
-Default model set is the Llama 3 Instruct family (small/mid/large within one
-family). Llama models on HF Hub are gated; before running, log in once on the
-V100 with `uv run hf auth login`.
+Default model set is the Llama 3 Instruct family. Llama models on HF Hub are
+gated; before running, log in once on the V100 with `uv run hf auth login`.
 
 Usage:
     uv run python scripts/run_llm.py [--smoke_test] [--batch_size 8]
+                                     [--seed 42] [--prompt default]
+                                     [--regimes zero-shot few-shot]
                                      [--models meta-llama/Llama-3.2-1B-Instruct ...]
 """
 
@@ -32,6 +35,7 @@ sys.path.insert(0, str(REPO_ROOT))
 from thesis.data import LABEL_NAMES, get_split, load_norec  # noqa: E402
 from thesis.evaluation import compute_metrics  # noqa: E402
 from thesis.llm import (  # noqa: E402
+    SYSTEM_PROMPTS,
     FewShotExample,
     build_messages,
     parse_response,
@@ -45,38 +49,49 @@ DEFAULT_MODELS = [
     "meta-llama/Llama-3.2-3B-Instruct",
     "meta-llama/Llama-3.1-8B-Instruct",
 ]
-MAX_REVIEW_TOKENS = 1500  # cap each review BEFORE chat-template assembly
-MAX_INPUT_TOKENS = 4096   # safety budget for full prompt; never truncate the assistant marker
+MAX_REVIEW_TOKENS = 1500
+MAX_INPUT_TOKENS = 4096
 MAX_NEW_TOKENS = 4
-SEED = 42
 
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument("--models", nargs="*", default=DEFAULT_MODELS)
+    p.add_argument(
+        "--regimes", nargs="*", default=["zero-shot", "few-shot"],
+        help="Subset of {zero-shot, few-shot} to evaluate.",
+    )
+    p.add_argument("--seed", type=int, default=42)
+    p.add_argument(
+        "--prompt", choices=sorted(SYSTEM_PROMPTS.keys()), default="default",
+        help="System prompt variant (key into thesis.llm.SYSTEM_PROMPTS).",
+    )
     p.add_argument("--batch_size", type=int, default=8)
     p.add_argument(
-        "--smoke_test",
-        action="store_true",
+        "--smoke_test", action="store_true",
         help="Subsample test heavily to verify the pipeline.",
     )
     p.add_argument(
-        "--skip_existing",
-        action="store_true",
-        help="Skip any (model, regime) whose predictions CSV already exists.",
+        "--skip_existing", action="store_true",
+        help="Skip configurations whose predictions CSV already exists.",
     )
     return p.parse_args()
 
 
-def predictions_path(model_name: str, regime: str) -> Path:
+def predictions_path(model_name: str, regime: str, seed: int, prompt: str) -> Path:
     short = model_name.split("/")[-1]
-    return RESULTS_DIR / f"llm_preds__{short}__{regime}.csv"
+    return RESULTS_DIR / f"llm_preds__{short}__{regime}__s{seed}_p{prompt}.csv"
+
+
+def summary_path(seed: int, prompt: str) -> Path:
+    return RESULTS_DIR / f"llm__s{seed}_p{prompt}.json"
 
 
 def write_summary(
-    runs: list[dict], few_shot: list[FewShotExample], args: argparse.Namespace
+    runs: list[dict],
+    few_shot: list[FewShotExample],
+    args: argparse.Namespace,
 ) -> None:
-    """Atomically write the aggregate llm.json from current runs (called after each run)."""
     out = {
         "few_shot_examples": [asdict(ex) for ex in few_shot],
         "config": {
@@ -86,11 +101,12 @@ def write_summary(
             "batch_size": args.batch_size,
             "decoding": "greedy",
             "smoke_test": args.smoke_test,
-            "seed": SEED,
+            "seed": args.seed,
+            "prompt": args.prompt,
         },
         "runs": runs,
     }
-    out_path = RESULTS_DIR / "llm.json"
+    out_path = summary_path(args.seed, args.prompt)
     tmp = out_path.with_suffix(".json.tmp")
     with tmp.open("w") as f:
         json.dump(out, f, indent=2, ensure_ascii=False)
@@ -100,11 +116,11 @@ def write_summary(
 def generate_predictions(
     texts: list[str],
     few_shot: list[FewShotExample] | None,
+    system_prompt: str,
     tokenizer,
     model,
     batch_size: int,
 ) -> tuple[list[int | None], list[str]]:
-    """Return (parsed_predictions, raw_responses) for each input text."""
     parsed: list[int | None] = []
     raws: list[str] = []
     device = next(model.parameters()).device
@@ -117,25 +133,19 @@ def generate_predictions(
         ]
         prompts = [
             tokenizer.apply_chat_template(
-                build_messages(t, few_shot),
-                tokenize=False,
-                add_generation_prompt=True,
+                build_messages(t, few_shot, system_prompt=system_prompt),
+                tokenize=False, add_generation_prompt=True,
             )
             for t in truncated
         ]
         enc = tokenizer(
-            prompts,
-            return_tensors="pt",
-            padding=True,
-            truncation=True,
-            max_length=MAX_INPUT_TOKENS,
+            prompts, return_tensors="pt", padding=True,
+            truncation=True, max_length=MAX_INPUT_TOKENS,
         ).to(device)
 
         with torch.no_grad():
             out = model.generate(
-                **enc,
-                max_new_tokens=MAX_NEW_TOKENS,
-                do_sample=False,
+                **enc, max_new_tokens=MAX_NEW_TOKENS, do_sample=False,
                 pad_token_id=tokenizer.pad_token_id,
             )
         new_tokens = out[:, enc["input_ids"].shape[1] :]
@@ -151,57 +161,48 @@ def generate_predictions(
 
 
 def evaluate_model_regime(
-    model_name: str,
-    regime: str,
-    test_df: pd.DataFrame,
-    few_shot: list[FewShotExample],
-    tokenizer,
-    model,
-    batch_size: int,
+    model_name: str, regime: str, test_df: pd.DataFrame,
+    few_shot: list[FewShotExample], tokenizer, model,
+    args: argparse.Namespace,
 ) -> dict:
-    """Run one (model, regime) configuration and return a result record."""
     examples = few_shot if regime == "few-shot" else None
     texts = test_df["text"].tolist()
     y_true = test_df["label"].to_numpy()
+    system_prompt = SYSTEM_PROMPTS[args.prompt]
 
     print(f"  [{regime}] generating on {len(texts)} examples...", flush=True)
     t0 = time.time()
     parsed, raws = generate_predictions(
-        texts, examples, tokenizer, model, batch_size
+        texts, examples, system_prompt, tokenizer, model, args.batch_size,
     )
     elapsed = time.time() - t0
 
     n_unparseable = sum(1 for p in parsed if p is None)
-    fallback = int(np.bincount(y_true).argmax())  # majority class as fallback
+    fallback = int(np.bincount(y_true).argmax())
     y_pred = np.array([p if p is not None else fallback for p in parsed])
     metrics = compute_metrics(y_true, y_pred, LABEL_NAMES)
 
     print(
         f"  [{regime}] acc={metrics['accuracy']:.4f} "
         f"macro-F1={metrics['macro_f1']:.4f} "
-        f"unparseable={n_unparseable}/{len(parsed)} "
-        f"({elapsed:.0f}s)",
+        f"unparseable={n_unparseable}/{len(parsed)} ({elapsed:.0f}s)",
         flush=True,
     )
 
-    preds_df = pd.DataFrame(
+    pd.DataFrame(
         {
-            "id": test_df["id"].to_numpy(),
-            "label": y_true,
-            "pred": y_pred,
-            "raw": raws,
-            "parsed": [p is not None for p in parsed],
+            "id": test_df["id"].to_numpy(), "label": y_true, "pred": y_pred,
+            "raw": raws, "parsed": [p is not None for p in parsed],
         }
-    )
-    preds_df.to_csv(predictions_path(model_name, regime), index=False)
+    ).to_csv(predictions_path(model_name, regime, args.seed, args.prompt), index=False)
 
     return {
-        "model": model_name,
-        "regime": regime,
+        "model": model_name, "regime": regime,
         "elapsed_seconds": elapsed,
         "n_examples": len(parsed),
         "n_unparseable": n_unparseable,
         "fallback_label_for_unparseable": LABEL_NAMES[fallback],
+        "seed": args.seed, "prompt": args.prompt,
         "metrics": metrics,
     }
 
@@ -210,15 +211,18 @@ def main() -> None:
     args = parse_args()
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
+    print(f"seed={args.seed}  prompt={args.prompt}")
+    print(f"  system prompt: {SYSTEM_PROMPTS[args.prompt]!r}")
+
     print("Loading NoReC...")
     df = load_norec()
     train_df = get_split(df, "train")
     test_df = get_split(df, "test")
     if args.smoke_test:
-        test_df = test_df.sample(50, random_state=SEED).reset_index(drop=True)
+        test_df = test_df.sample(50, random_state=args.seed).reset_index(drop=True)
         print(f"[smoke_test] test subsampled to {len(test_df)}")
 
-    few_shot = select_few_shot_examples(train_df, n_per_class=2, seed=SEED)
+    few_shot = select_few_shot_examples(train_df, n_per_class=2, seed=args.seed)
     print(f"Few-shot examples ({len(few_shot)}):")
     for ex in few_shot:
         wc = len(ex.text.split())
@@ -228,14 +232,17 @@ def main() -> None:
     for model_name in args.models:
         print(f"\n=== {model_name} ===")
         regimes_to_run = [
-            r for r in ("zero-shot", "few-shot")
-            if not (args.skip_existing and predictions_path(model_name, r).exists())
+            r for r in args.regimes
+            if not (
+                args.skip_existing
+                and predictions_path(model_name, r, args.seed, args.prompt).exists()
+            )
         ]
         if not regimes_to_run:
-            print(f"  skipping (predictions exist for both regimes)")
+            print("  skipping (predictions exist for all requested regimes)")
             continue
-        if args.skip_existing and len(regimes_to_run) < 2:
-            skipped = set(("zero-shot", "few-shot")) - set(regimes_to_run)
+        if args.skip_existing and len(regimes_to_run) < len(args.regimes):
+            skipped = set(args.regimes) - set(regimes_to_run)
             print(f"  skipping existing: {sorted(skipped)}")
 
         tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -244,16 +251,13 @@ def main() -> None:
         tokenizer.padding_side = "left"
 
         model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            dtype=torch.float16,
-            device_map="auto",
+            model_name, dtype=torch.float16, device_map="auto",
         )
         model.eval()
 
         for regime in regimes_to_run:
             run = evaluate_model_regime(
-                model_name, regime, test_df, few_shot, tokenizer, model,
-                args.batch_size,
+                model_name, regime, test_df, few_shot, tokenizer, model, args,
             )
             runs.append(run)
             write_summary(runs, few_shot, args)
@@ -264,10 +268,10 @@ def main() -> None:
 
     seen = {(r["model"], r["regime"]) for r in runs}
     for model_name in args.models:
-        for regime in ("zero-shot", "few-shot"):
+        for regime in args.regimes:
             if (model_name, regime) in seen:
                 continue
-            path = predictions_path(model_name, regime)
+            path = predictions_path(model_name, regime, args.seed, args.prompt)
             if not path.exists():
                 continue
             df = pd.read_csv(path)
@@ -277,21 +281,24 @@ def main() -> None:
             fallback = int(np.bincount(y_true).argmax())
             runs.append(
                 {
-                    "model": model_name,
-                    "regime": regime,
+                    "model": model_name, "regime": regime,
                     "n_examples": len(df),
                     "n_unparseable": int((~df["parsed"]).sum()),
                     "fallback_label_for_unparseable": LABEL_NAMES[fallback],
+                    "seed": args.seed, "prompt": args.prompt,
                     "metrics": metrics,
                     "loaded_from_csv": True,
                 }
             )
 
     write_summary(runs, few_shot, args)
-    print(f"\nWrote {RESULTS_DIR / 'llm.json'}")
+    print(f"\nWrote {summary_path(args.seed, args.prompt)}")
 
     print("\n=== Summary ===")
-    print(f"{'model':<40} {'regime':<11} {'acc':<8} {'macro-F1':<10} {'unparse':<8}")
+    print(
+        f"{'model':<40} {'regime':<11} {'acc':<8} "
+        f"{'macro-F1':<10} {'unparse':<8}"
+    )
     for r in runs:
         short = r["model"].split("/")[-1]
         print(
