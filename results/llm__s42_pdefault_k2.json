@@ -1,0 +1,66 @@
+{
+  "few_shot_examples": [
+    {
+      "review_id": "111650",
+      "text": "Tokio Hotel - «Humanoid»\nTenåringshelter med begrenset musikalsk interesse. \n\nTyske Tokio Hotel - med svartsminkede, androgyne Bill Kaulitz (20) og hans ti minutter eldre tvillingbror Tom som udiskutabel kjerne - har på kort tid blitt et europeisk tenåringsfenomen av dimensjoner. \nMye skyldes selvfølgelig Bills frontfigurative særpreg, men samtidig har uttrykket - som flere mener er spesialdesignet av langt eldre og mer erfarne produsenter - et emosjonelt element som er det rene fluepapiret på rot- og rastløse ungdommer med sans for melodiøs, synthpreget pop med høy glamfaktor. \n\nLuften går dessverre fort ut av ballongen her etter en sterk åpning, for når Tokio Hotel er mest interessante når de fremstår som bleke Depeche Mode-skygger er det neppe den musikalske egenarten man vil huske «Humanoid» for. \n\nANBEFALTE KJØP: \n«Noise», «Darkside Of The Sun» og «World Behind My Wall». \n",
+      "label_name": "negative"
+    },
+    {
+      "review_id": "106617",
+      "text": "The Sleepy Jackson «Personality»\n(Virgin/EMI) \n\nNok et flott «Pet Sounds»-substitutt. \n\nAustralske Luke Steele som skjuler seg bak navnet The Sleepy Jackson. \nEn mann hvis enerådige natur og stormannsgalskap fører til at et utall medlemmer kommer og går i bandet hans, men som også får konsekvenser i form av vakkert orkestrert popmusikk. \n\nArrangementene er detaljrike og storartede; det er strykere og englekor hvor enn du snur deg på «Personality». \nSteeles forbilder er antagelig Brian Wilson (lydmessig) og John Lennon (vokalt og låtmessig), og selv om han ikke fyller noen av sine helters sko, gjør han en mer enn hederlig jobb med å forene deres ideer. \nInne i det voldsomme lydbildet ligger dessuten genuint gripende låter og et bankende hjerte. \n\nVeldig lyst og sommerlig, det hele - sjansen er stor for at dette albumet vil føles lite relevant i november. \nMen som jordbær og miniskjørt for lengst har bevist: \nSesongbetonte ting har en helt egen sjarm ved seg. \n\nANBEFALTE KJØP: \n«I Understand What You Want But I Just Don't Care», «Devil Was In My Yard», «Work Alone» \n",
+      "label_name": "positive"
+    }
+  ],
+  "config": {
+    "max_review_tokens": 1500,
+    "max_input_tokens": 4096,
+    "max_new_tokens": 4,
+    "batch_size": 4,
+    "decoding": "greedy",
+    "smoke_test": false,
+    "seed": 42,
+    "prompt": "default",
+    "n_per_class": 1,
+    "demo_order_seed": null
+  },
+  "runs": [
+    {
+      "model": "meta-llama/Llama-3.1-8B-Instruct",
+      "regime": "few-shot",
+      "elapsed_seconds": 1793.1228866577148,
+      "n_examples": 4340,
+      "n_unparseable": 53,
+      "fallback_label_for_unparseable": "positive",
+      "seed": 42,
+      "prompt": "default",
+      "metrics": {
+        "accuracy": 0.9025345622119816,
+        "macro_f1": 0.8664914012686742,
+        "per_class": {
+          "negative": {
+            "precision": 0.7486486486486487,
+            "recall": 0.8523076923076923,
+            "f1": 0.7971223021582734,
+            "support": 975
+          },
+          "positive": {
+            "precision": 0.9554179566563468,
+            "recall": 0.9170876671619613,
+            "f1": 0.9358605003790751,
+            "support": 3365
+          }
+        },
+        "confusion_matrix": [
+          [
+            831,
+            144
+          ],
+          [
+            279,
+            3086
+          ]
+        ]
+      }
+    }
+  ]
+}
