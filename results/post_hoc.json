@@ -1,0 +1,54 @@
+{
+  "mcnemar_nbbert_vs_llm8b": {
+    "n_test": 4340,
+    "nbbert_correct_only": 238,
+    "llm_correct_only": 259,
+    "both_correct": 3672,
+    "both_wrong": 171,
+    "chi2_statistic": 0.8048289738430584,
+    "exact_two_tailed_p": 0.3696693835091562,
+    "note": "NB-BERT is seed=42; LLM is Llama-3.1-8B 4-shot seed=42 default prompt."
+  },
+  "ensemble": {
+    "members": [
+      "classical_lr_balanced",
+      "nbbert_seed42",
+      "llm_8b_4shot_seed42_default"
+    ],
+    "accuracy": 0.9191244239631337,
+    "macro_f1": 0.8825884192043707,
+    "per_class_f1_neg_pos": [
+      0.8170922355393434,
+      0.948084602869398
+    ],
+    "individual_members_at_seed42": {
+      "classical_lr_balanced": {
+        "acc": 0.8764976958525346,
+        "macro_f1": 0.819007454007272
+      },
+      "nbbert_seed42": {
+        "acc": 0.9009216589861752,
+        "macro_f1": 0.8539081564371063
+      },
+      "llm_8b_4shot_seed42_default": {
+        "acc": 0.9057603686635944,
+        "macro_f1": 0.8717476946975786
+      }
+    }
+  },
+  "llama_1b_zero_shot_diagnostic": {
+    "n_test": 4340,
+    "n_predicted_negative": 4068,
+    "frac_predicted_negative": 0.9373271889400921,
+    "n_predicted_positive": 272,
+    "n_unparseable_total": 9,
+    "of_negative_preds_n_parseable": 4068,
+    "of_negative_preds_n_unparseable_fallback": 0,
+    "note": "All unparseable responses default to majority class (positive=1) per thesis convention, so any 'negative' prediction is a parseable model output \u2014 not a fallback. The output column shows what the model actually produced.",
+    "top_negative_raw_outputs": {
+      "negative": 2335,
+      "Negative": 1732,
+      "1. negative\n": 1
+    }
+  }
+}

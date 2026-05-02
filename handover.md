@@ -44,7 +44,7 @@ These are all daemon bugs, not anything we can fix in our scripts.
 
 **8B prompts can exceed `MAX_INPUT_TOKENS=4096` at high k.** k=8 (8 demos × ~150 tokens + 1500-token review + chat overhead) sometimes pushes individual inputs past 4096 tokens. The chat template's trailing assistant generation prompt then gets right-truncated, and the model produces continuations of the user's review text instead of a verdict. This produced 500 unparseable responses at k=8 in our run. The fix would be to raise the cap; we documented the failure rather than fixing it because it's an interesting finding for the discussion. Don't be surprised by this if you re-run with longer prompts.
 
-**HF token in transcript.** The token `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` was used during this work and appears in the prior chat history. It needs to be rotated at huggingface.co/settings/tokens. The user has been reminded but may not have done it yet.
+**HF token.** A personal access token used during this work has since been revoked at huggingface.co/settings/tokens. Any new run needs a fresh token via `uv run hf auth login`.
 
 ## How to find things
 
@@ -70,17 +70,11 @@ These are all daemon bugs, not anything we can fix in our scripts.
 - Minimise supervisor interaction until the draft is ready. Don't suggest looping in the supervisor for design decisions.
 - Pragmatic rigor: the user has been willing to add multi-seed runs, ablations, validity sections — but only when proposed as concrete high-ROI items with clear page-count and compute estimates.
 
-## What's left to do (final-polish list)
+## What's left to do
 
-These are not blockers and don't require further experiments:
+The final-polish pass has been done. Supervisor name (Turgay Celik) is in `titlepage.tex`; the UiA declaration form has been removed from the build (`chapters/declaration.tex` deleted, `\input` line removed from `main.tex`); a typo / consistency read-through has been done across all chapters (numerical errors fixed, British-English spelling normalised for *artefact* and *tokeniser*, a few awkward phrasings cleaned up); the `per_source_heatmap.png` and `per_year.png` figures have been uploaded directly via the Overleaf web UI; the HF token has been revoked; the predecessor GitHub repo has been deleted; the local commits have been pushed to `origin/main`.
 
-1. **Titlepage**: `\supervisor{[To be agreed]}` in `~/overleaf-mirror/.../titlepage.tex` — the user fills in once agreed.
-2. **Declaration form** (`chapters/declaration.tex`): seven `Ja / Nei` checkboxes — the user fills these out at submission.
-3. **Read-through pass**: nobody has read the full PDF top-to-bottom. Typos and awkward sentences will exist.
-4. **Two new figures may need manual upload to Overleaf**: `per_source_heatmap.png`, `per_year.png` — daemon corrupts new binaries. The user has been told.
-5. **HF token rotation** (see Operational gotchas).
-6. **Old GitHub repo deletion** (`olejohanovreas/master`).
-7. **Optional: `git push origin main`** — the user controls when this happens. 14+ commits unpushed at last count.
+There is no outstanding blocker. The remaining items are user-side at submission: filling in any university paperwork outside the thesis PDF itself.
 
 ## Possible future-work items the user might raise
 
