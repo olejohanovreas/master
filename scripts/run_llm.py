@@ -40,6 +40,7 @@ from thesis.llm import (  # noqa: E402
     build_messages,
     parse_response,
     select_few_shot_examples,
+    shuffle_few_shot,
     truncate_text_to_tokens,
 )
 
@@ -66,6 +67,15 @@ def parse_args() -> argparse.Namespace:
         "--prompt", choices=sorted(SYSTEM_PROMPTS.keys()), default="default",
         help="System prompt variant (key into thesis.llm.SYSTEM_PROMPTS).",
     )
+    p.add_argument(
+        "--n_per_class", type=int, default=2,
+        help="Number of demonstrations per class (total k = 2 * n_per_class).",
+    )
+    p.add_argument(
+        "--demo_order_seed", type=int, default=None,
+        help="If set, shuffle the four demos with this seed (demonstration-"
+        "order ablation). Default leaves the canonical interleaved order.",
+    )
     p.add_argument("--batch_size", type=int, default=8)
     p.add_argument(
         "--smoke_test", action="store_true",
@@ -78,13 +88,30 @@ def parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
-def predictions_path(model_name: str, regime: str, seed: int, prompt: str) -> Path:
+def _config_suffix(n_per_class: int, demo_order_seed: int | None) -> str:
+    suffix = ""
+    if n_per_class != 2:
+        suffix += f"_k{2 * n_per_class}"
+    if demo_order_seed is not None:
+        suffix += f"_o{demo_order_seed}"
+    return suffix
+
+
+def predictions_path(
+    model_name: str, regime: str, seed: int, prompt: str,
+    n_per_class: int = 2, demo_order_seed: int | None = None,
+) -> Path:
     short = model_name.split("/")[-1]
-    return RESULTS_DIR / f"llm_preds__{short}__{regime}__s{seed}_p{prompt}.csv"
+    suffix = _config_suffix(n_per_class, demo_order_seed)
+    return RESULTS_DIR / f"llm_preds__{short}__{regime}__s{seed}_p{prompt}{suffix}.csv"
 
 
-def summary_path(seed: int, prompt: str) -> Path:
-    return RESULTS_DIR / f"llm__s{seed}_p{prompt}.json"
+def summary_path(
+    seed: int, prompt: str,
+    n_per_class: int = 2, demo_order_seed: int | None = None,
+) -> Path:
+    suffix = _config_suffix(n_per_class, demo_order_seed)
+    return RESULTS_DIR / f"llm__s{seed}_p{prompt}{suffix}.json"
 
 
 def write_summary(
@@ -103,10 +130,14 @@ def write_summary(
             "smoke_test": args.smoke_test,
             "seed": args.seed,
             "prompt": args.prompt,
+            "n_per_class": args.n_per_class,
+            "demo_order_seed": args.demo_order_seed,
         },
         "runs": runs,
     }
-    out_path = summary_path(args.seed, args.prompt)
+    out_path = summary_path(
+        args.seed, args.prompt, args.n_per_class, args.demo_order_seed,
+    )
     tmp = out_path.with_suffix(".json.tmp")
     with tmp.open("w") as f:
         json.dump(out, f, indent=2, ensure_ascii=False)
@@ -194,7 +225,13 @@ def evaluate_model_regime(
             "id": test_df["id"].to_numpy(), "label": y_true, "pred": y_pred,
             "raw": raws, "parsed": [p is not None for p in parsed],
         }
-    ).to_csv(predictions_path(model_name, regime, args.seed, args.prompt), index=False)
+    ).to_csv(
+        predictions_path(
+            model_name, regime, args.seed, args.prompt,
+            args.n_per_class, args.demo_order_seed,
+        ),
+        index=False,
+    )
 
     return {
         "model": model_name, "regime": regime,
@@ -222,7 +259,12 @@ def main() -> None:
         test_df = test_df.sample(50, random_state=args.seed).reset_index(drop=True)
         print(f"[smoke_test] test subsampled to {len(test_df)}")
 
-    few_shot = select_few_shot_examples(train_df, n_per_class=2, seed=args.seed)
+    few_shot = select_few_shot_examples(
+        train_df, n_per_class=args.n_per_class, seed=args.seed,
+    )
+    if args.demo_order_seed is not None:
+        few_shot = shuffle_few_shot(few_shot, args.demo_order_seed)
+        print(f"[demo_order_seed={args.demo_order_seed}] demos shuffled")
     print(f"Few-shot examples ({len(few_shot)}):")
     for ex in few_shot:
         wc = len(ex.text.split())
@@ -235,7 +277,10 @@ def main() -> None:
             r for r in args.regimes
             if not (
                 args.skip_existing
-                and predictions_path(model_name, r, args.seed, args.prompt).exists()
+                and predictions_path(
+                    model_name, r, args.seed, args.prompt,
+                    args.n_per_class, args.demo_order_seed,
+                ).exists()
             )
         ]
         if not regimes_to_run:
@@ -271,7 +316,10 @@ def main() -> None:
         for regime in args.regimes:
             if (model_name, regime) in seen:
                 continue
-            path = predictions_path(model_name, regime, args.seed, args.prompt)
+            path = predictions_path(
+                model_name, regime, args.seed, args.prompt,
+                args.n_per_class, args.demo_order_seed,
+            )
             if not path.exists():
                 continue
             df = pd.read_csv(path)

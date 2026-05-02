@@ -1,0 +1,33 @@
+model,source,n,accuracy,macro_f1
+logreg+balanced,ap,474,0.9072,0.854
+logreg+balanced,bt,371,0.9326,0.8434
+logreg+balanced,dagbladet,790,0.8722,0.818
+logreg+balanced,dinside,306,0.8693,0.6191
+logreg+balanced,fvn,431,0.8677,0.7921
+logreg+balanced,p3,589,0.8998,0.854
+logreg+balanced,sa,596,0.896,0.8195
+logreg+balanced,vg,783,0.811,0.7943
+NB-BERT-base,ap,474,0.9177,0.868
+NB-BERT-base,bt,371,0.9164,0.7982
+NB-BERT-base,dagbladet,790,0.8924,0.8468
+NB-BERT-base,dinside,306,0.8758,0.6685
+NB-BERT-base,fvn,431,0.9165,0.8619
+NB-BERT-base,p3,589,0.944,0.9192
+NB-BERT-base,sa,596,0.9245,0.8704
+NB-BERT-base,vg,783,0.8429,0.8278
+Llama-3.1-8B 0-shot,ap,474,0.865,0.8195
+Llama-3.1-8B 0-shot,bt,371,0.8679,0.7756
+Llama-3.1-8B 0-shot,dagbladet,790,0.8557,0.8243
+Llama-3.1-8B 0-shot,dinside,306,0.8693,0.7294
+Llama-3.1-8B 0-shot,fvn,431,0.9072,0.8618
+Llama-3.1-8B 0-shot,p3,589,0.9083,0.8823
+Llama-3.1-8B 0-shot,sa,596,0.8758,0.819
+Llama-3.1-8B 0-shot,vg,783,0.8531,0.841
+Llama-3.1-8B 4-shot,ap,474,0.9008,0.8596
+Llama-3.1-8B 4-shot,bt,371,0.9164,0.8382
+Llama-3.1-8B 4-shot,dagbladet,790,0.9038,0.874
+Llama-3.1-8B 4-shot,dinside,306,0.8889,0.7654
+Llama-3.1-8B 4-shot,fvn,431,0.9327,0.8986
+Llama-3.1-8B 4-shot,p3,589,0.9253,0.8994
+Llama-3.1-8B 4-shot,sa,596,0.9161,0.8688
+Llama-3.1-8B 4-shot,vg,783,0.8748,0.8654

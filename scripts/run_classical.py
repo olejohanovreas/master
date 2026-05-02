@@ -59,6 +59,7 @@ def main() -> None:
             tag = f"{clf_name} balanced={balanced}"
             print(f"=== {tag} ===")
             best = None
+            sweep: list[dict] = []
             for C in C_GRID:
                 t0 = time.time()
                 pipe = make_pipeline(clf_name, C, balanced)
@@ -70,6 +71,14 @@ def main() -> None:
                     f"  C={C:>5}  fit={fit_s:5.1f}s  "
                     f"dev acc={dev_metrics['accuracy']:.4f}  "
                     f"dev macro-F1={dev_metrics['macro_f1']:.4f}"
+                )
+                sweep.append(
+                    {
+                        "C": C,
+                        "fit_seconds": fit_s,
+                        "dev_accuracy": dev_metrics["accuracy"],
+                        "dev_macro_f1": dev_metrics["macro_f1"],
+                    }
                 )
                 if best is None or dev_metrics["macro_f1"] > best["dev"]["macro_f1"]:
                     best = {
@@ -105,6 +114,7 @@ def main() -> None:
                     "best_C": best["C"],
                     "fit_seconds": best["fit_s"],
                     "predict_seconds_test": pred_s,
+                    "dev_sweep": sweep,
                     "dev": best["dev"],
                     "test": test_metrics,
                 }

@@ -121,3 +121,20 @@ def select_few_shot_examples(
         for cls in by_class:
             interleaved.append(cls[i])
     return interleaved
+
+
+def shuffle_few_shot(
+    examples: list[FewShotExample], shuffle_seed: int
+) -> list[FewShotExample]:
+    """Return a permuted copy of `examples` using a deterministic seed.
+
+    Used by the demonstration-order ablation: the same four demonstrations are
+    presented to the model in different orders to test whether the prompted-
+    classifier result is robust to ordering, independent of demo content.
+    """
+    import random
+
+    rng = random.Random(shuffle_seed)
+    shuffled = list(examples)
+    rng.shuffle(shuffled)
+    return shuffled

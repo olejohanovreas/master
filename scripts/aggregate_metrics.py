@@ -28,7 +28,11 @@ from thesis.evaluation import compute_metrics  # noqa: E402
 
 LLM_PREDS_RE = re.compile(
     r"^llm_preds__(?P<model>[^_]+(?:-[^_]+)*)__"
-    r"(?P<regime>[^_]+(?:-[^_]+)*)__s(?P<seed>\d+)_p(?P<prompt>\w+)\.csv$"
+    r"(?P<regime>[^_]+(?:-[^_]+)*)__"
+    r"s(?P<seed>\d+)_p(?P<prompt>[a-zA-Z]+)"
+    r"(?:_k(?P<k>\d+))?"
+    r"(?:_o(?P<order>\d+))?"
+    r"\.csv$"
 )
 
 
@@ -137,8 +141,8 @@ def collect_chunked(rows: list[dict]) -> None:
 
 
 def collect_llm(rows: list[dict]) -> None:
-    """Read every llm_preds__*__*__s*_p*.csv and aggregate by (model, regime, prompt)."""
-    grouped: dict[tuple[str, str, str], list[dict]] = {}
+    """Read every llm_preds__*__*__s*_p*.csv and aggregate by (model, regime, prompt, k, order)."""
+    grouped: dict[tuple[str, str, str, int, str], list[dict]] = {}
     for p in sorted(RESULTS_DIR.glob("llm_preds__*__s*_p*.csv")):
         m = LLM_PREDS_RE.match(p.name)
         if not m:
@@ -148,7 +152,9 @@ def collect_llm(rows: list[dict]) -> None:
         y_pred = df["pred"].to_numpy()
         metrics = compute_metrics(y_true, y_pred, LABEL_NAMES)
         n_unparse = int((~df["parsed"]).sum()) if "parsed" in df.columns else 0
-        key = (m["model"], m["regime"], m["prompt"])
+        k = int(m["k"]) if m["k"] else 4  # default n_per_class=2 -> k=4
+        order = m["order"] if m["order"] else "canonical"
+        key = (m["model"], m["regime"], m["prompt"], k, order)
         grouped.setdefault(key, []).append(
             {
                 "seed": int(m["seed"]),
@@ -157,13 +163,20 @@ def collect_llm(rows: list[dict]) -> None:
             }
         )
 
-    for (model_short, regime, prompt), runs_for_key in grouped.items():
+    for (model_short, regime, prompt, k, order), runs_for_key in grouped.items():
         accs = [r["metrics"]["accuracy"] for r in runs_for_key]
         f1s = [r["metrics"]["macro_f1"] for r in runs_for_key]
         neg = [r["metrics"]["per_class"]["negative"]["f1"] for r in runs_for_key]
         pos = [r["metrics"]["per_class"]["positive"]["f1"] for r in runs_for_key]
         unp = [r["n_unparseable"] for r in runs_for_key]
-        config_str = regime if prompt == "default" else f"{regime}, prompt={prompt}"
+        config_parts = [regime]
+        if prompt != "default":
+            config_parts.append(f"prompt={prompt}")
+        if k != 4:
+            config_parts.append(f"k={k}")
+        if order != "canonical":
+            config_parts.append(f"order={order}")
+        config_str = ", ".join(config_parts)
         rows.append(
             {
                 "family": f"LLM ({regime})",
