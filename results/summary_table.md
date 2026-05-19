@@ -8,7 +8,7 @@
 | classical | Linear SVM | class_weight=none, C=10.0 | 1 | 0.8712 | 0.7995 | 0.6797 | 0.9194 |  |
 | classical | Linear SVM | class_weight=balanced, C=1.0 | 1 | 0.8747 | 0.8142 | 0.7082 | 0.9202 |  |
 | transformer | NB-BERT-base | 3 ep, lr=2e-05, batch=32, max_len=512 | 5 | 0.8994 ± 0.0033 | 0.8529 ± 0.0038 | 0.7703 ± 0.0054 | 0.9356 ± 0.0023 |  |
-| transformer | NB-BERT-base + chunk-and-pool | max_len=512, stride=256 | 1 | 0.9030 | 0.8544 | 0.7703 | 0.9385 |  |
+| transformer | NB-BERT-base + chunk-and-pool | max_len=512, stride=256 | 1 | 0.9067 | 0.8633 | 0.7863 | 0.9403 |  |
 | LLM (few-shot) | Llama-3.1-8B-Instruct | few-shot | 5 | 0.9131 ± 0.0044 | 0.8777 ± 0.0036 | 0.8119 ± 0.0045 | 0.9435 ± 0.0035 | 42 |
 | LLM (few-shot) | Llama-3.1-8B-Instruct | few-shot, k=2 | 1 | 0.9025 | 0.8665 | 0.7971 | 0.9359 | 53 |
 | LLM (few-shot) | Llama-3.1-8B-Instruct | few-shot, k=6 | 1 | 0.9101 | 0.8769 | 0.8129 | 0.9409 | 7 |

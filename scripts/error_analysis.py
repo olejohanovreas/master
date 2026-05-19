@@ -52,6 +52,8 @@ HEADLINE = [
     ),
 ]
 
+CONFUSION_HEADLINE = [h for h in HEADLINE if h[1] != "NB-BERT chunk-pool"]
+
 
 def load_preds(csv_name: str) -> pd.DataFrame:
     path = RESULTS_DIR / csv_name
@@ -96,8 +98,8 @@ def main() -> None:
     df_test["n_words"] = df_test["text"].str.split().str.len()
 
     # ---------- Confusion matrices ----------
-    fig, axes = plt.subplots(1, len(HEADLINE), figsize=(4 * len(HEADLINE), 4))
-    for ax, (_family, label, csv_name) in zip(axes, HEADLINE):
+    fig, axes = plt.subplots(2, 2, figsize=(10, 9))
+    for ax, (_family, label, csv_name) in zip(axes.flatten(), CONFUSION_HEADLINE):
         df = load_preds(csv_name)
         plot_confusion(df["label"].to_numpy(), df["pred"].to_numpy(), label, ax)
     fig.suptitle("Confusion matrices on NoReC test (counts and row-normalized rates)")
@@ -142,7 +144,8 @@ def main() -> None:
     ax.set_xticks(range(len(pivot.columns)))
     ax.set_xticklabels(pivot.columns, rotation=20, ha="right")
     ax.set_yticks(range(len(pivot.index)))
-    ax.set_yticklabels(pivot.index)
+    cat_supports = cat_df.groupby("category", observed=True)["n"].first()
+    ax.set_yticklabels([f"{c} (n={cat_supports[c]})" for c in pivot.index])
     for i in range(len(pivot.index)):
         for j in range(len(pivot.columns)):
             v = pivot.values[i, j]

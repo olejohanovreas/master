@@ -17,15 +17,15 @@ NB-BERT-base,restaurants,98,0.898,0.8535
 NB-BERT-base,screen,1579,0.8784,0.8502
 NB-BERT-base,sports,16,0.5,0.5
 NB-BERT-base,stage,107,0.9626,0.8897
-NB-BERT chunk-pool,games,180,0.9389,0.882
-NB-BERT chunk-pool,literature,547,0.9214,0.8228
+NB-BERT chunk-pool,games,180,0.9333,0.8693
+NB-BERT chunk-pool,literature,547,0.9269,0.8437
 NB-BERT chunk-pool,misc,24,0.875,0.7491
-NB-BERT chunk-pool,music,1444,0.9141,0.8724
-NB-BERT chunk-pool,products,345,0.8899,0.69
-NB-BERT chunk-pool,restaurants,98,0.949,0.93
-NB-BERT chunk-pool,screen,1579,0.8847,0.8552
+NB-BERT chunk-pool,music,1444,0.9141,0.873
+NB-BERT chunk-pool,products,345,0.8928,0.7166
+NB-BERT chunk-pool,restaurants,98,0.9592,0.9448
+NB-BERT chunk-pool,screen,1579,0.8911,0.8669
 NB-BERT chunk-pool,sports,16,0.5,0.5
-NB-BERT chunk-pool,stage,107,0.9346,0.7764
+NB-BERT chunk-pool,stage,107,0.9533,0.868
 Llama-3.1-8B 0-shot,games,180,0.9111,0.8691
 Llama-3.1-8B 0-shot,literature,547,0.8135,0.7385
 Llama-3.1-8B 0-shot,misc,24,0.9167,0.8095

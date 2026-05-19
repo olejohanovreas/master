@@ -49,34 +49,37 @@ def predict_chunked(
 ) -> np.ndarray:
     """Chunk-and-pool inference over long documents.
 
-    Each document is tokenized without truncation and split into overlapping
-    windows of `max_length` tokens (with `stride` step). Logits are averaged
-    across all windows of a document and argmax gives the per-document
-    prediction. Documents shorter than `max_length` collapse to a single
-    forward pass.
+    Each document is tokenized without special tokens, split into overlapping
+    windows of (max_length - 2) content tokens at the given stride, and the
+    tokenizer's special tokens ([CLS], [SEP]) are rebuilt for every window so
+    each chunk is a valid classification input. Logits are averaged across
+    all windows of a document and argmax gives the per-document prediction.
+    Documents shorter than the content budget collapse to a single window.
     """
     model.eval()
     pad_id = tokenizer.pad_token_id
     if pad_id is None:
         pad_id = 0
+    cls_id = tokenizer.cls_token_id
+    sep_id = tokenizer.sep_token_id
+    content_len = max_length - 2  # reserve room for [CLS] and [SEP]
 
     predictions: list[int] = []
     for text in texts:
-        encoded = tokenizer(
-            text, return_tensors="pt", truncation=False, padding=False,
-            add_special_tokens=True,
-        )
-        ids = encoded["input_ids"][0]
-        n_tokens = ids.shape[0]
+        body = tokenizer(text, add_special_tokens=False)["input_ids"]
+        n_body = len(body)
 
-        if n_tokens <= max_length:
-            chunks = [ids]
+        if n_body <= content_len:
+            ids_list = [cls_id] + list(body) + [sep_id]
+            chunks = [torch.tensor(ids_list, dtype=torch.long)]
         else:
             chunks = []
             start = 0
-            while start < n_tokens:
-                chunks.append(ids[start : start + max_length])
-                if start + max_length >= n_tokens:
+            while start < n_body:
+                window = body[start : start + content_len]
+                ids_list = [cls_id] + list(window) + [sep_id]
+                chunks.append(torch.tensor(ids_list, dtype=torch.long))
+                if start + content_len >= n_body:
                     break
                 start += stride
 

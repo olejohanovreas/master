@@ -15,10 +15,10 @@ Task: document-level binary sentiment with the canonical label mapping `{1,2,3} 
 | majority floor | 0.7753 | 0.4367 |
 | Logistic Regression (balanced) | 0.8765 | 0.8190 |
 | NB-BERT-base, 5 seeds | 0.8994 ± 0.0033 | 0.8529 ± 0.0038 |
-| NB-BERT-base + chunk-and-pool | 0.9030 | 0.8544 |
+| NB-BERT-base + chunk-and-pool | 0.9067 | 0.8633 |
 | **Llama-3.1-8B 4-shot, 5 seeds** | **0.9131 ± 0.0044** | **0.8777 ± 0.0036** |
 
-The 8B prompted LLM with four in-context demonstrations beats the fine-tuned encoder by roughly six pooled standard deviations on macro-F1 — a real, not-seed-noise gap. Within the Llama family, seed variance scales inversely with size (1B ±0.043, 3B ±0.017, 8B ±0.0036). The encoder's penalty on long reviews is *architectural*, not a truncation artefact (chunk-and-pool does not close the gap).
+The 8B prompted LLM with four in-context demonstrations beats the fine-tuned encoder by much more than the observed seed standard deviations on macro-F1 — a real, not-seed-noise gap. Within the Llama family, seed variance scales inversely with size (1B ±0.043, 3B ±0.017, 8B ±0.0036). The encoder's long-review penalty is partly a truncation effect — chunk-and-pool with per-window special tokens recovers about 5.7 macro-F1 points on the 1000+-word bin (from 0.605 to 0.662) — but the gap to the LLM (0.702 on the same bin) is not closed by this pooling strategy.
 
 ## Setup
 
