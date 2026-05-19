@@ -1,0 +1,38 @@
+{
+  "model": "NB-BERT-base (chunk-and-pool)",
+  "config": {
+    "checkpoint": "/home/coder/master-new/checkpoints/nbbert-base-seed45/final",
+    "seed": 45,
+    "max_length": 512,
+    "stride": 256
+  },
+  "elapsed_seconds": 115.4247670173645,
+  "test": {
+    "accuracy": 0.9052995391705069,
+    "macro_f1": 0.8614798853687693,
+    "per_class": {
+      "negative": {
+        "precision": 0.8051948051948052,
+        "recall": 0.7630769230769231,
+        "f1": 0.7835703001579779,
+        "support": 975
+      },
+      "positive": {
+        "precision": 0.9323770491803278,
+        "recall": 0.9465081723625557,
+        "f1": 0.9393894705795606,
+        "support": 3365
+      }
+    },
+    "confusion_matrix": [
+      [
+        744,
+        231
+      ],
+      [
+        180,
+        3185
+      ]
+    ]
+  }
+}

@@ -32,18 +32,28 @@ from thesis.evaluation import compute_metrics  # noqa: E402
 from thesis.transformer import predict_chunked  # noqa: E402
 
 RESULTS_DIR = REPO_ROOT / "results"
-DEFAULT_CHECKPOINT = (
-    REPO_ROOT / "checkpoints" / "nbbert-base-seed42" / "final"
-)
+CHECKPOINTS_ROOT = REPO_ROOT / "checkpoints"
 
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
-    p.add_argument("--checkpoint", type=Path, default=DEFAULT_CHECKPOINT)
+    p.add_argument(
+        "--seed", type=int, default=42,
+        help="NB-BERT fine-tune seed; selects checkpoint and output suffix.",
+    )
+    p.add_argument(
+        "--checkpoint", type=Path, default=None,
+        help="Optional explicit checkpoint path; overrides --seed.",
+    )
     p.add_argument("--max_length", type=int, default=512)
     p.add_argument("--stride", type=int, default=256)
     p.add_argument("--batch_size", type=int, default=32)
-    return p.parse_args()
+    args = p.parse_args()
+    if args.checkpoint is None:
+        args.checkpoint = (
+            CHECKPOINTS_ROOT / f"nbbert-base-seed{args.seed}" / "final"
+        )
+    return args
 
 
 def main() -> None:
@@ -95,7 +105,8 @@ def main() -> None:
         f"Positive-F1: {metrics['per_class']['positive']['f1']:.4f}"
     )
 
-    preds_path = RESULTS_DIR / "nbbert_preds_chunked.csv"
+    suffix = f"_seed{args.seed}" if args.seed != 42 else ""
+    preds_path = RESULTS_DIR / f"nbbert_preds_chunked{suffix}.csv"
     pd.DataFrame(
         {"id": test_df["id"].to_numpy(), "label": y_true, "pred": preds}
     ).to_csv(preds_path, index=False)
@@ -104,13 +115,14 @@ def main() -> None:
         "model": "NB-BERT-base (chunk-and-pool)",
         "config": {
             "checkpoint": str(args.checkpoint),
+            "seed": args.seed,
             "max_length": args.max_length,
             "stride": args.stride,
         },
         "elapsed_seconds": elapsed,
         "test": metrics,
     }
-    out_path = RESULTS_DIR / "nbbert_chunked.json"
+    out_path = RESULTS_DIR / f"nbbert_chunked{suffix}.json"
     with out_path.open("w") as f:
         json.dump(out, f, indent=2)
     print(f"\nWrote {out_path}")

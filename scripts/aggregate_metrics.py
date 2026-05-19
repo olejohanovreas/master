@@ -118,23 +118,28 @@ def collect_nbbert(rows: list[dict]) -> None:
 
 
 def collect_chunked(rows: list[dict]) -> None:
-    path = RESULTS_DIR / "nbbert_chunked.json"
-    if not path.exists():
+    paths = sorted(RESULTS_DIR.glob("nbbert_chunked*.json"))
+    if not paths:
         return
-    with path.open() as f:
-        s = json.load(f)
-    m = s["test"]
-    cfg = s["config"]
+    summaries: list[dict] = []
+    for p in paths:
+        with p.open() as f:
+            summaries.append(json.load(f))
+    cfg = summaries[0]["config"]
+    accs = [s["test"]["accuracy"] for s in summaries]
+    f1s = [s["test"]["macro_f1"] for s in summaries]
+    neg = [s["test"]["per_class"]["negative"]["f1"] for s in summaries]
+    pos = [s["test"]["per_class"]["positive"]["f1"] for s in summaries]
     rows.append(
         {
             "family": "transformer",
             "model": "NB-BERT-base + chunk-and-pool",
             "config": f"max_len={cfg['max_length']}, stride={cfg['stride']}",
-            "n_seeds": 1,
-            "accuracy": fmt_mean_std([m["accuracy"]]),
-            "macro_f1": fmt_mean_std([m["macro_f1"]]),
-            "neg_f1": fmt_mean_std([m["per_class"]["negative"]["f1"]]),
-            "pos_f1": fmt_mean_std([m["per_class"]["positive"]["f1"]]),
+            "n_seeds": len(summaries),
+            "accuracy": fmt_mean_std(accs),
+            "macro_f1": fmt_mean_std(f1s),
+            "neg_f1": fmt_mean_std(neg),
+            "pos_f1": fmt_mean_std(pos),
             "n_unparseable": "",
         }
     )
