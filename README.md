@@ -37,7 +37,6 @@ master/
 ├── pyproject.toml          uv-managed deps + Python pin
 ├── uv.lock                 exact pins for every transitive dep
 ├── README.md               this file
-├── handover.md             continuity context for a future session
 ├── thesis/                 importable package
 │   ├── data.py             NoReC loader + binary label mapping
 │   ├── classical.py        TF-IDF + LR / LinearSVC pipelines
@@ -154,7 +153,7 @@ Gitignored (large, regenerable):
 
 ## Thesis text
 
-Written in LaTeX in a separate Overleaf project, mirrored locally at `~/overleaf-mirror/69f1e32653de3bed2edb2172/`. The thesis cites results, tables, and figures produced by this repository.
+Written in LaTeX in a separate Overleaf project. The thesis cites results, tables, and figures produced by this repository.
 
 ## License
 

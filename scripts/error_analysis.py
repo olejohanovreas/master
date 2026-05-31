@@ -97,17 +97,25 @@ def main() -> None:
     df_test["id"] = df_test["id"].astype(str).str.zfill(6)
     df_test["n_words"] = df_test["text"].str.split().str.len()
 
-    # ---------- Confusion matrices ----------
-    fig, axes = plt.subplots(2, 2, figsize=(10, 9))
-    for ax, (_family, label, csv_name) in zip(axes.flatten(), CONFUSION_HEADLINE):
-        df = load_preds(csv_name)
-        plot_confusion(df["label"].to_numpy(), df["pred"].to_numpy(), label, ax)
-    fig.suptitle("Confusion matrices on NoReC test (counts and row-normalized rates)")
-    fig.tight_layout()
-    out = FIGURES_DIR / "confusion_matrices.png"
-    fig.savefig(out, dpi=150)
-    plt.close(fig)
-    print(f"Wrote {out}")
+    # ---------- Confusion matrices: split into two 1x2 figures ----------
+    encoder_pair = [h for h in CONFUSION_HEADLINE if h[0] in ("classical", "transformer")]
+    llm_pair = [h for h in CONFUSION_HEADLINE if h[0].startswith("LLM")]
+    for out_name, configs, suptitle in [
+        ("confusion_matrices_encoder.png", encoder_pair,
+         "Confusion matrices: classical baseline and fine-tuned NB-BERT-base"),
+        ("confusion_matrices_llm.png", llm_pair,
+         "Confusion matrices: Llama-3.1-8B-Instruct (zero-shot and four-shot)"),
+    ]:
+        fig, axes = plt.subplots(1, 2, figsize=(10, 4.6))
+        for ax, (_family, label, csv_name) in zip(axes, configs):
+            df = load_preds(csv_name)
+            plot_confusion(df["label"].to_numpy(), df["pred"].to_numpy(), label, ax)
+        fig.suptitle(suptitle)
+        fig.tight_layout()
+        out = FIGURES_DIR / out_name
+        fig.savefig(out, dpi=150)
+        plt.close(fig)
+        print(f"Wrote {out}")
 
     # ---------- Per-category ----------
     cat_rows: list[dict] = []
